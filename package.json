@@ -1,5 +1,5 @@
 {
-  "name": "graphql-codegen-zod",
+  "name": "@lewebsimple/graphql-codegen-zod",
   "version": "0.0.0",
   "description": "GraphQL Codegen preset for generating Zod schemas.",
   "homepage": "https://github.com/lewebsimple/graphql-codegen-zod#readme",
@@ -32,14 +32,45 @@
     "access": "public"
   },
   "scripts": {
-    "build": "rolldown --config ./rolldown.config.ts && tsc"
+    "build": "rolldown --config ./rolldown.config.ts && tsc",
+    "format": "oxfmt .",
+    "lint": "oxlint . --fix",
+    "prepare": "husky",
+    "release": "pnpm lint && pnpm test && pnpm build && changelogen --release --push && pnpm publish",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
-    "typescript": "^5.9.3"
+    "@graphql-codegen/plugin-helpers": "^6.1.0"
   },
   "devDependencies": {
-    "rolldown": "1.0.0-rc.6"
+    "@types/node": "^25.3.5",
+    "changelogen": "^0.6.2",
+    "graphql": "^16.13.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.3.2",
+    "oxfmt": "^0.36.0",
+    "oxlint": "^1.51.0",
+    "rolldown": "1.0.0-rc.6",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18",
+    "zod": "^4.3.6"
   },
-  "peerDependencies": {},
-  "packageManager": "pnpm@10.30.3"
+  "peerDependencies": {
+    "graphql": "^16.13.1",
+    "zod": "^4.3.6"
+  },
+  "lint-staged": {
+    "*.{ts,json,md}": [
+      "oxlint --fix",
+      "oxfmt"
+    ]
+  },
+  "packageManager": "pnpm@10.30.3",
+  "changelog": {
+    "noAuthors": true,
+    "types": {
+      "chore": false
+    }
+  }
 }
