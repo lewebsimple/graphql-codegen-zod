@@ -6,3 +6,5 @@ export const preset: Types.OutputPreset = {
     return sections;
   },
 };
+
+export default preset;
