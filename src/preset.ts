@@ -6,6 +6,8 @@ import * as typescriptOperationsPlugin from "@graphql-codegen/typescript-operati
 import * as typescriptPlugin from "@graphql-codegen/typescript";
 import * as zodPlugin from "./plugin";
 import type { Types } from "@graphql-codegen/plugin-helpers";
+import { getEnumTypes } from "./lib/enum";
+import { buildASTSchema } from "graphql";
 
 export const preset: Types.OutputPreset = {
   buildGeneratesSection: async (options) => {
@@ -22,7 +24,7 @@ export const preset: Types.OutputPreset = {
       },
       documents: options.documents,
       schema: options.schema,
-      schemaAst: options.schemaAst,
+      schemaAst: options.schemaAst || buildASTSchema(options.schema),
       pluginMap: {
         ...options.pluginMap,
         add: addPlugin,
@@ -69,9 +71,19 @@ export const preset: Types.OutputPreset = {
       {
         ...baseConfig,
         filename: join(outputDir, outputName),
-        plugins: [{ zod: {} }],
+        plugins: [{ zod: { kind: "registry" } satisfies zodPlugin.ZodPluginConfig }],
       },
     ];
+
+    // enums
+    const enumNames = getEnumTypes(baseConfig.schemaAst).map(({ name }) => name);
+    for (const enumName of enumNames) {
+      sections.push({
+        ...baseConfig,
+        filename: join(outputDir, `enums/${enumName}.ts`),
+        plugins: [{ zod: { kind: "enum", enumName } satisfies zodPlugin.ZodPluginConfig }],
+      });
+    }
 
     return sections;
   },
