@@ -33,6 +33,7 @@
   },
   "scripts": {
     "build": "rolldown --config ./rolldown.config.ts && tsc",
+    "codegen": "graphql-codegen",
     "format": "oxfmt .",
     "lint": "oxlint . --fix",
     "prepare": "husky",
@@ -41,14 +42,15 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@graphql-codegen/plugin-helpers": "^6.1.0",
+    "@graphql-codegen/plugin-helpers": "^6.1.1",
     "es-toolkit": "^1.45.1"
   },
   "devDependencies": {
     "@graphql-codegen/add": "^6.0.0",
-    "@graphql-codegen/typed-document-node": "^6.1.6",
-    "@graphql-codegen/typescript": "^5.0.8",
-    "@graphql-codegen/typescript-operations": "^5.0.8",
+    "@graphql-codegen/cli": "^6.1.3",
+    "@graphql-codegen/typed-document-node": "^6.1.7",
+    "@graphql-codegen/typescript": "^5.0.9",
+    "@graphql-codegen/typescript-operations": "^5.0.9",
     "@types/node": "^25.3.5",
     "changelogen": "^0.6.2",
     "graphql": "^16.13.1",
