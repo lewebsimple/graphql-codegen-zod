@@ -1,0 +1,45 @@
+{
+  "name": "graphql-codegen-zod",
+  "version": "0.0.0",
+  "description": "GraphQL Codegen preset for generating Zod schemas.",
+  "homepage": "https://github.com/lewebsimple/graphql-codegen-zod#readme",
+  "bugs": {
+    "url": "https://github.com/lewebsimple/graphql-codegen-zod/issues"
+  },
+  "license": "AGPL-3.0-only",
+  "author": "Pascal Martineau <pascal@lewebsimple.ca>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lewebsimple/graphql-codegen-zod.git"
+  },
+  "files": [
+    "dist",
+    "CHANGELOG.md",
+    "README.md"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/preset.d.ts",
+      "default": "./dist/preset.js"
+    },
+    "./plugin": {
+      "types": "./dist/plugin.d.ts",
+      "default": "./dist/plugin.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "rolldown --config ./rolldown.config.ts && tsc"
+  },
+  "dependencies": {
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "rolldown": "1.0.0-rc.6"
+  },
+  "peerDependencies": {},
+  "packageManager": "pnpm@10.30.3"
+}
