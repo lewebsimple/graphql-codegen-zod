@@ -8,6 +8,11 @@ export function getEnumTypes(schema: GraphQLSchema): GraphQLEnumType[] {
   return sortBy(enumTypes, ["name"]);
 }
 
+export function getEnumType(schema: GraphQLSchema, enumName: string): GraphQLEnumType | null {
+  const type = schema.getType(enumName);
+  return isEnumType(type) ? type : null;
+}
+
 export function getEnumSchemaExpression(enumType: GraphQLEnumType): string {
   const values = enumType
     .getValues()
