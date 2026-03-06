@@ -8,6 +8,8 @@ import * as zodPlugin from "./plugin";
 import type { Types } from "@graphql-codegen/plugin-helpers";
 import { getEnumTypes } from "./lib/enum";
 import { buildASTSchema } from "graphql";
+import { getFragmentDefinitions } from "./lib/fragment";
+import { getOperationDefinitions } from "./lib/operation";
 
 export const preset: Types.OutputPreset = {
   buildGeneratesSection: async (options) => {
@@ -71,17 +73,49 @@ export const preset: Types.OutputPreset = {
       {
         ...baseConfig,
         filename: join(outputDir, outputName),
-        plugins: [{ zod: { kind: "registry" } satisfies zodPlugin.ZodPluginConfig }],
+        plugins: [{ zod: { mode: "registry" } satisfies zodPlugin.ZodPluginConfig }],
       },
     ];
 
     // enums
-    const enumNames = getEnumTypes(baseConfig.schemaAst).map(({ name }) => name);
-    for (const enumName of enumNames) {
+    const enumTypes = getEnumTypes(baseConfig.schemaAst);
+    for (const { name: enumName } of enumTypes) {
       sections.push({
         ...baseConfig,
         filename: join(outputDir, `enums/${enumName}.ts`),
-        plugins: [{ zod: { kind: "enum", enumName } satisfies zodPlugin.ZodPluginConfig }],
+        plugins: [{ zod: { mode: "enum", enumName } satisfies zodPlugin.ZodPluginConfig }],
+      });
+    }
+
+    // fragments
+    const fragmentDefs = getFragmentDefinitions(baseConfig.documents);
+    for (const fragmentDef of fragmentDefs) {
+      const fragmentName = fragmentDef.name.value;
+      sections.push({
+        ...baseConfig,
+        filename: join(outputDir, `fragments/${fragmentName}.ts`),
+        plugins: [{ zod: { mode: "fragment", fragmentName } satisfies zodPlugin.ZodPluginConfig }],
+      });
+    }
+
+    // operations
+    const operationDefs = getOperationDefinitions(baseConfig.documents);
+    for (const operationDef of operationDefs) {
+      const operationName = operationDef.name?.value;
+      const operationType = operationDef.operation;
+      if (!operationName) continue;
+      sections.push({
+        ...baseConfig,
+        filename: join(outputDir, `operations/${operationName}.ts`),
+        plugins: [
+          {
+            zod: {
+              mode: "operation",
+              operationType,
+              operationName,
+            } satisfies zodPlugin.ZodPluginConfig,
+          },
+        ],
       });
     }
 
