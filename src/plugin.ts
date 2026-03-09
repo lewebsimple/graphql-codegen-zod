@@ -1,66 +1,37 @@
-import type { PluginFunction, Types } from "@graphql-codegen/plugin-helpers";
-import { GraphQLSchema, OperationTypeNode } from "graphql";
-import { getEnumTypes, getEnumSchemaExpression } from "./lib/enum";
+import type { PluginFunction } from "@graphql-codegen/plugin-helpers";
+import type { OperationTypeNode } from "graphql";
 
+import { getEnumPluginOutput } from "./lib/enum";
+import { getFragmentPluginOutput } from "./lib/fragment";
+import { getOperationPluginOutput } from "./lib/operation";
+import { getRegistryPluginOutput } from "./lib/registry";
+
+/** Runtime config accepted by the Zod codegen plugin. */
 export type ZodPluginConfig =
-  | { mode: "registry" }
   | { mode: "enum"; enumName: string }
   | { mode: "fragment"; fragmentName: string }
-  | { mode: "operation"; operationType: OperationTypeNode; operationName: string };
+  | { mode: "operation"; operationType: OperationTypeNode; operationName: string }
+  | { mode: "registry" };
 
+/**
+ * GraphQL Code Generator plugin entry point.
+ * @param schema GraphQL schema.
+ * @param documents Parsed GraphQL documents.
+ * @param config Plugin mode/configuration.
+ * @returns Generated module source content.
+ */
 export const plugin: PluginFunction<ZodPluginConfig> = (schema, documents, config) => {
   switch (config.mode) {
     case "enum":
-      return getEnumModuleContent(schema, config.enumName);
+      return getEnumPluginOutput({ schema, ...config });
 
     case "fragment":
-      const { fragmentName } = config;
-      return getFragmentModuleContent(schema, documents, fragmentName);
+      return getFragmentPluginOutput({ schema, documents, ...config });
 
     case "operation":
-      const { operationType, operationName } = config;
-      return getOperationModuleContent(schema, documents, operationType, operationName);
+      return getOperationPluginOutput({ schema, documents, ...config });
 
     case "registry":
-      return getRegistryModuleContent(schema, documents);
+      return getRegistryPluginOutput({ schema, documents, ...config });
   }
 };
-
-function getEnumModuleContent(schema: GraphQLSchema, enumName: string): string {
-  const enumType = getEnumTypes(schema).find(({ name }) => name === enumName);
-  if (!enumType) {
-    throw new Error(`Could not find enum type for ${enumName}`);
-  }
-
-  return [
-    'import { z } from "zod";',
-    "",
-    `export const schema = ${getEnumSchemaExpression(enumType)};`,
-    "",
-  ].join("\n");
-}
-
-function getFragmentModuleContent(
-  schema: GraphQLSchema,
-  documents: Types.DocumentFile[],
-  fragmentName: string,
-): string {
-  return [
-    'import { z } from "zod";',
-    "",
-    // `export const schema = ${getFragmentSchemaExpression(fragmentType)};`,
-  ].join("\n");
-}
-
-function getOperationModuleContent(
-  schema: GraphQLSchema,
-  documents: Types.DocumentFile[],
-  operationType: OperationTypeNode,
-  operationName: string,
-): string {
-  return "";
-}
-
-function getRegistryModuleContent(schema: GraphQLSchema, documents: Types.DocumentFile[]): string {
-  return "";
-}

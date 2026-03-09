@@ -1,3 +1,3 @@
 import { z } from "zod";
 
-export const schema = z.enum(["ADMIN", "USER"]);
+export const enumSchema = z.enum(["ADMIN", "USER"]);

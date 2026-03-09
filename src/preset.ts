@@ -1,27 +1,33 @@
 import { basename, dirname, join } from "node:path";
 
 import * as addPlugin from "@graphql-codegen/add";
-import * as typedDocumentNodePlugin from "@graphql-codegen/typed-document-node";
-import * as typescriptOperationsPlugin from "@graphql-codegen/typescript-operations";
-import * as typescriptPlugin from "@graphql-codegen/typescript";
-import * as zodPlugin from "./plugin";
 import type { Types } from "@graphql-codegen/plugin-helpers";
-import { getEnumTypes } from "./lib/enum";
+import * as typedDocumentNodePlugin from "@graphql-codegen/typed-document-node";
+import type { TypeScriptTypedDocumentNodesConfig } from "@graphql-codegen/typed-document-node";
+import * as typescriptPlugin from "@graphql-codegen/typescript";
+import type { TypeScriptPluginConfig } from "@graphql-codegen/typescript";
+import * as typescriptOperationsPlugin from "@graphql-codegen/typescript-operations";
+import type { TypeScriptDocumentsPluginConfig } from "@graphql-codegen/typescript-operations";
 import { buildASTSchema } from "graphql";
+
+import { getEnumTypes } from "./lib/enum";
 import { getFragmentDefinitions } from "./lib/fragment";
 import { getOperationDefinitions } from "./lib/operation";
+import * as zodPlugin from "./plugin";
 
 export const preset: Types.OutputPreset = {
+  /**
+   * Builds the list of generate sections for the preset output.
+   * @param options Codegen output options.
+   * @returns Generate sections consumed by GraphQL Code Generator.
+   */
   buildGeneratesSection: async (options) => {
     const baseConfig = {
       config: {
         ...options.config,
-        avoidOptionals: {
-          defaultValue: false,
-          field: true,
-          inputValue: false,
-          object: true,
-        },
+        avoidOptionals: { field: true, object: true },
+        defaultScalarType: "unknown",
+        strictScalars: true,
         useTypeImports: true,
       },
       documents: options.documents,
@@ -37,77 +43,69 @@ export const preset: Types.OutputPreset = {
       },
     } satisfies Partial<Types.GenerateOptions>;
 
+    // Validate output directory / filename
     const outputDir = dirname(options.baseOutputDir);
     const outputName = basename(options.baseOutputDir);
-
-    const sections: Types.GenerateOptions[] = [
-      // typescript / typescript-operations
-      {
-        ...baseConfig,
-        filename: join(outputDir, "types.ts"),
-        plugins: [
-          {
-            typescript: {},
-          },
-          {
-            typescriptOperations: {},
-          },
-        ],
-      },
-
-      // typed-document-node
-      {
-        ...baseConfig,
-        filename: join(outputDir, "documents.ts"),
-        plugins: [
-          { add: { content: `import type * as Types from "./types";\n` } },
-          {
-            typedDocumentNode: {
-              importOperationTypesFrom: "./types",
-            },
-          },
-        ],
-      },
-
-      // zod
-      {
-        ...baseConfig,
-        filename: join(outputDir, outputName),
-        plugins: [{ zod: { mode: "registry" } satisfies zodPlugin.ZodPluginConfig }],
-      },
-    ];
-
-    // enums
-    const enumTypes = getEnumTypes(baseConfig.schemaAst);
-    for (const { name: enumName } of enumTypes) {
-      sections.push({
-        ...baseConfig,
-        filename: join(outputDir, `enums/${enumName}.ts`),
-        plugins: [{ zod: { mode: "enum", enumName } satisfies zodPlugin.ZodPluginConfig }],
-      });
+    if (!outputName.endsWith(".ts")) {
+      throw new Error(`Zod preset expects filename to end with .ts, got ${outputName}`);
     }
 
-    // fragments
-    const fragmentDefs = getFragmentDefinitions(baseConfig.documents);
-    for (const fragmentDef of fragmentDefs) {
+    // Initialize sections array and helper function to create sections with consistent config
+    const sections: Types.GenerateOptions[] = [];
+    const section = (
+      filename: string,
+      plugins: Types.ConfiguredPlugin[],
+    ): Types.GenerateOptions => ({ ...baseConfig, filename: join(outputDir, filename), plugins });
+
+    // ────────────────────────────────────────────────────────────────────────────
+    // Schema / operations / typed document node
+    // ────────────────────────────────────────────────────────────────────────────
+
+    sections.push(
+      section("documents.ts", [
+        { typescript: {} satisfies TypeScriptPluginConfig },
+        { typescriptOperations: {} satisfies TypeScriptDocumentsPluginConfig },
+        { typedDocumentNode: {} satisfies TypeScriptTypedDocumentNodesConfig },
+      ]),
+    );
+
+    // ────────────────────────────────────────────────────────────────────────────
+    // Enums
+    // ────────────────────────────────────────────────────────────────────────────
+
+    for (const { name: enumName } of getEnumTypes(baseConfig.schemaAst)) {
+      sections.push(
+        section(`enums/${enumName}.ts`, [
+          { zod: { mode: "enum", enumName } satisfies zodPlugin.ZodPluginConfig },
+        ]),
+      );
+    }
+
+    // ────────────────────────────────────────────────────────────────────────────
+    // Fragments
+    // ────────────────────────────────────────────────────────────────────────────
+
+    for (const fragmentDef of getFragmentDefinitions(baseConfig.documents)) {
       const fragmentName = fragmentDef.name.value;
-      sections.push({
-        ...baseConfig,
-        filename: join(outputDir, `fragments/${fragmentName}.ts`),
-        plugins: [{ zod: { mode: "fragment", fragmentName } satisfies zodPlugin.ZodPluginConfig }],
-      });
+
+      sections.push(
+        section(`fragments/${fragmentName}.ts`, [
+          { zod: { mode: "fragment", fragmentName } satisfies zodPlugin.ZodPluginConfig },
+        ]),
+      );
     }
 
-    // operations
-    const operationDefs = getOperationDefinitions(baseConfig.documents);
-    for (const operationDef of operationDefs) {
-      const operationName = operationDef.name?.value;
+    // ────────────────────────────────────────────────────────────────────────────
+    // Operations
+    // ────────────────────────────────────────────────────────────────────────────
+
+    for (const operationDef of getOperationDefinitions(baseConfig.documents)) {
       const operationType = operationDef.operation;
+      const operationName = operationDef.name?.value;
       if (!operationName) continue;
-      sections.push({
-        ...baseConfig,
-        filename: join(outputDir, `operations/${operationName}.ts`),
-        plugins: [
+
+      sections.push(
+        section(`operations/${operationName}.${operationType}.ts`, [
           {
             zod: {
               mode: "operation",
@@ -115,9 +113,17 @@ export const preset: Types.OutputPreset = {
               operationName,
             } satisfies zodPlugin.ZodPluginConfig,
           },
-        ],
-      });
+        ]),
+      );
     }
+
+    // ────────────────────────────────────────────────────────────────────────────
+    // Registry
+    // ────────────────────────────────────────────────────────────────────────────
+
+    sections.push(
+      section(outputName, [{ zod: { mode: "registry" } satisfies zodPlugin.ZodPluginConfig }]),
+    );
 
     return sections;
   },
