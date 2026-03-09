@@ -10,7 +10,7 @@
   "author": "Pascal Martineau <pascal@lewebsimple.ca>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/lewebsimple/graphql-codegen-zod.git"
+    "url": "git+https://github.com/lewebsimple/graphql-codegen-zod.git"
   },
   "files": [
     "dist",
