@@ -5,13 +5,15 @@ import { getEnumPluginOutput } from "./lib/enum";
 import { getFragmentPluginOutput } from "./lib/fragment";
 import { getOperationPluginOutput } from "./lib/operation";
 import { getRegistryPluginOutput } from "./lib/registry";
+import { getTypesPluginOutput } from "./lib/types";
 
 /** Runtime config accepted by the Zod codegen plugin. */
 export type ZodPluginConfig =
   | { mode: "enum"; enumName: string }
   | { mode: "fragment"; fragmentName: string }
   | { mode: "operation"; operationType: OperationTypeNode; operationName: string }
-  | { mode: "registry" };
+  | { mode: "registry" }
+  | { mode: "types" };
 
 /**
  * GraphQL Code Generator plugin entry point.
@@ -33,5 +35,8 @@ export const plugin: PluginFunction<ZodPluginConfig> = (schema, documents, confi
 
     case "registry":
       return getRegistryPluginOutput({ schema, documents, ...config });
+
+    case "types":
+      return getTypesPluginOutput({ schema, documents, ...config });
   }
 };

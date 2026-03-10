@@ -126,6 +126,14 @@ export const preset: Types.OutputPreset = {
       section(outputName, [{ zod: { mode: "registry" } satisfies zodPlugin.ZodPluginConfig }]),
     );
 
+    // ────────────────────────────────────────────────────────────────────────────
+    // Types
+    // ────────────────────────────────────────────────────────────────────────────
+
+    sections.push(
+      section("types.d.ts", [{ zod: { mode: "types" } satisfies zodPlugin.ZodPluginConfig }]),
+    );
+
     return sections;
   },
 };
