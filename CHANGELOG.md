@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.1.3
+
+[compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.1.2...v0.1.3)
+
+### 🩹 Fixes
+
+- Don't export type helpers (project-specific) ([538536e](https://github.com/lewebsimple/graphql-codegen-zod/commit/538536e))
+
 ## v0.1.2
 
 [compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.1.1...v0.1.2)
