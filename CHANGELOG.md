@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.1.2
+
+[compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.1.1...v0.1.2)
+
+### 🚀 Enhancements
+
+- Export type helpes for enums / fragments / operations ([d80bd07](https://github.com/lewebsimple/graphql-codegen-zod/commit/d80bd07))
+
 ## v0.1.1
 
 [compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.1.0...v0.1.1)
