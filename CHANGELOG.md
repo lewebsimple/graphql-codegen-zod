@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.1.1
+
+[compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.1.0...v0.1.1)
+
+### 🚀 Enhancements
+
+- Export Zod types from generated artifacts ([71f2397](https://github.com/lewebsimple/graphql-codegen-zod/commit/71f2397))
+- Re-export types.d.ts ([c3981f4](https://github.com/lewebsimple/graphql-codegen-zod/commit/c3981f4))
+
 ## v0.1.0
 
 [compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.0.1...v0.1.0)
