@@ -56,15 +56,15 @@ export function getRegistryPluginOutput({
     "",
     "export const enums = {",
     ...enumEntries,
-    "};",
+    "} as const;",
     "",
     "export const fragments = {",
     ...fragmentEntries,
-    "};",
+    "} as const;",
     "",
     "export const operations = {",
     ...operationEntries,
-    "};",
+    "} as const;",
   ].join("\n");
 }
 
