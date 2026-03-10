@@ -50,5 +50,22 @@ export function getTypesPluginOutput({ schema, documents }: GetTypesPluginOutput
     );
   }
 
-  return join(exports, "\n");
+  return [
+    ...exports,
+    ``,
+    `import type { enums, fragments, operations } from "./registry";`,
+    `import type * as z from "zod";`,
+    ``,
+    `type Keys<T> = keyof T extends never ? string : keyof T;`,
+    ``,
+    `export type EnumName = Keys<typeof enums>;`,
+    `export type EnumOf<T extends EnumName> = T extends keyof typeof enums ? z.infer<(typeof enums)[T]["schema"]> : unknown;`,
+    ``,
+    `export type FragmentName = Keys<typeof fragments>;`,
+    `export type FragmentOf<T extends FragmentName> = T extends keyof typeof fragments ? z.infer<(typeof fragments)[T]["schema"]> : unknown;`,
+    ``,
+    `export type OperationName = Keys<typeof operations>;`,
+    `export type ResultOf<T extends OperationName> = T extends keyof typeof operations ? z.infer<(typeof operations)[T]["resultSchema"]> : unknown;`,
+    `export type VariablesOf<T extends OperationName> = T extends keyof typeof operations ? z.input<(typeof operations)[T]["variablesSchema"]> : unknown;`,
+  ].join("\n");
 }
