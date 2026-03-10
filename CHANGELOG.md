@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.1.4
+
+[compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.1.3...v0.1.4)
+
+### 🩹 Fixes
+
+- Emit registry "as const" ([9fd0f0a](https://github.com/lewebsimple/graphql-codegen-zod/commit/9fd0f0a))
+
 ## v0.1.3
 
 [compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.1.2...v0.1.3)
