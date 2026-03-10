@@ -93,5 +93,6 @@ export function getFragmentPluginOutput({
   return [
     ...getImports({ zod: true, rootDir: "..", deps }),
     `export const fragmentSchema = ${zodFragment};`,
+    `export type ${fragmentName}Fragment = z.infer<typeof fragmentSchema>;`,
   ].join("\n");
 }

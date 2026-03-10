@@ -28,6 +28,7 @@ export const preset: Types.OutputPreset = {
         avoidOptionals: { field: true, object: true },
         defaultScalarType: "unknown",
         strictScalars: true,
+        typesPrefix: "Gql",
         useTypeImports: true,
       },
       documents: options.documents,

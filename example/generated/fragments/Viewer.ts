@@ -8,3 +8,4 @@ export const fragmentSchema = z.object({
   role: zodUserRoleEnumSchema,
   name: z.string().nullable(),
 });
+export type ViewerFragment = z.infer<typeof fragmentSchema>;

@@ -88,6 +88,9 @@ export function getImports({
         break;
     }
   }
+  if (imports.length > 0) {
+    imports.push("");
+  }
 
   return imports;
 }

@@ -19,43 +19,49 @@ export type Scalars = {
   Float: { input: number; output: number };
 };
 
-export type Query = {
+export type GqlQuery = {
   __typename?: "Query";
-  getUser: User;
+  getUser: GqlUser;
 };
 
-export type QueryGetUserArgs = {
+export type GqlQueryGetUserArgs = {
   id: Scalars["ID"]["input"];
 };
 
-export type User = {
+export type GqlUser = {
   __typename?: "User";
   email: Scalars["String"]["output"];
   id: Scalars["ID"]["output"];
   name: Maybe<Scalars["String"]["output"]>;
-  role: UserRole;
+  role: GqlUserRole;
 };
 
-export enum UserRole {
+export enum GqlUserRole {
   Admin = "ADMIN",
   User = "USER",
 }
 
-export type ViewerFragment = {
+export type GqlViewerFragment = {
   __typename?: "User";
   id: string;
   email: string;
-  role: UserRole;
+  role: GqlUserRole;
   name: string | null;
 };
 
-export type GetUserQueryVariables = Exact<{
+export type GqlGetUserQueryVariables = Exact<{
   id: Scalars["ID"]["input"];
 }>;
 
-export type GetUserQuery = {
+export type GqlGetUserQuery = {
   __typename?: "Query";
-  getUser: { __typename?: "User"; id: string; email: string; role: UserRole; name: string | null };
+  getUser: {
+    __typename?: "User";
+    id: string;
+    email: string;
+    role: GqlUserRole;
+    name: string | null;
+  };
 };
 
 export const ViewerFragmentDoc = {
@@ -76,7 +82,7 @@ export const ViewerFragmentDoc = {
       },
     },
   ],
-} as unknown as DocumentNode<ViewerFragment, unknown>;
+} as unknown as DocumentNode<GqlViewerFragment, unknown>;
 export const GetUserDocument = {
   kind: "Document",
   definitions: [
@@ -130,4 +136,4 @@ export const GetUserDocument = {
       },
     },
   ],
-} as unknown as DocumentNode<GetUserQuery, GetUserQueryVariables>;
+} as unknown as DocumentNode<GqlGetUserQuery, GqlGetUserQueryVariables>;

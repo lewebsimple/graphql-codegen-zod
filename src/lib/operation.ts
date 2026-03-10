@@ -131,5 +131,7 @@ export function getOperationPluginOutput({
     ...getImports({ zod: true, rootDir: "..", deps }),
     `export const resultSchema = ${zodResult};`,
     `export const variablesSchema = ${zodVariables};`,
+    `export type ${operationName}Result = z.infer<typeof resultSchema>;`,
+    `export type ${operationName}Variables = z.input<typeof variablesSchema>;`,
   ].join("\n");
 }

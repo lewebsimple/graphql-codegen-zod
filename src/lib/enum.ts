@@ -51,5 +51,6 @@ export function getEnumPluginOutput({ schema, enumName }: GetEnumPluginOutputOpt
   return [
     ...getImports({ zod: true, rootDir: ".." }),
     `export const enumSchema = ${zodEnum};`,
+    `export type ${enumName}Enum = z.infer<typeof enumSchema>;`,
   ].join("\n");
 }
