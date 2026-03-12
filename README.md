@@ -35,3 +35,33 @@ The preset generates Zod schemas for:
 - fragments
 - operations (result and variables)
 - top-level registry
+
+## Document Directives
+
+Directives are applied through a hook-based mechanism in `src/lib/directives.ts`, split into:
+
+- input directives hooks
+- output directives hooks
+
+This keeps directive behavior modular and makes adding new directives easier.
+
+Supported directives:
+
+- `@required` on output fields: removes `.nullable()` from the generated field schema.
+
+Example:
+
+```graphql
+directive @required on FIELD
+
+query Viewer {
+  viewer {
+    name @required
+  }
+}
+```
+
+Notes:
+
+- If your codegen setup validates documents, define these directives in your schema (or schema extensions) so validation succeeds.
+- `@required` currently applies to operation/fragment result schemas (selection sets).

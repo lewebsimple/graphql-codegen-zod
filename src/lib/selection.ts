@@ -1,4 +1,5 @@
 import type {
+  DirectiveNode,
   GraphQLInterfaceType,
   GraphQLObjectType,
   GraphQLOutputType,
@@ -19,7 +20,13 @@ import {
 
 import type { DepIdentifier } from "./deps";
 import { getDepSchemaIdentifier } from "./deps";
-import { getZodScalar } from "./zod";
+import { applyOutputDirectives } from "./directives";
+import { getZodScalar, type ZodSchemaState } from "./zod";
+
+/** Output/result schema builder state. */
+export type ZodOutputState = ZodSchemaState & {
+  outputType: GraphQLOutputType;
+};
 
 export type ZodFromSelectionInput = {
   schema: GraphQLSchema;
@@ -67,6 +74,7 @@ export function getZodSelection({
           schema,
           outputType: fieldDef.type,
           selectionSet: selection.selectionSet,
+          directives: selection.directives ?? [],
           deps,
         });
         fields.push(`${fieldAlias}: ${zodField}`);
@@ -108,6 +116,7 @@ type ZodFromOutputInput = {
   schema: GraphQLSchema;
   outputType: GraphQLOutputType;
   selectionSet?: SelectionSetNode;
+  directives?: readonly DirectiveNode[];
   deps: Set<DepIdentifier>;
 };
 
@@ -117,34 +126,44 @@ type ZodFromOutputInput = {
  * @param selectionSet Optional child selection set for object/interface output types.
  * @returns Zod schema expression.
  */
-function getZodOutput({ schema, outputType, selectionSet, deps }: ZodFromOutputInput): string {
-  let nullable = true;
+function getZodOutput({
+  schema,
+  outputType,
+  selectionSet,
+  directives,
+  deps,
+}: ZodFromOutputInput): string {
+  let state: ZodOutputState = {
+    outputType,
+    zodSchema: "",
+    nullable: true,
+    optional: false,
+    transforms: [],
+  };
 
-  if (isNonNullType(outputType)) {
-    outputType = outputType.ofType;
-    nullable = false;
+  if (isNonNullType(state.outputType)) {
+    state.outputType = state.outputType.ofType;
+    state.nullable = false;
   }
 
-  let zodSchema: string;
-
-  if (isListType(outputType)) {
-    zodSchema = `z.array(${getZodOutput({ schema, outputType: outputType.ofType, selectionSet, deps })})`;
+  if (isListType(state.outputType)) {
+    state.zodSchema = `z.array(${getZodOutput({ schema, outputType: state.outputType.ofType, selectionSet, deps })})`;
   } else {
-    const named = getNamedType(outputType);
+    const named = getNamedType(state.outputType);
 
     if (isScalarType(named)) {
       // Scalar
-      zodSchema = getZodScalar(named.name);
+      state.zodSchema = getZodScalar(named.name);
     } else if (isEnumType(named)) {
       // Enum
       deps.add({ name: named.name, kind: "enum" });
-      zodSchema = getDepSchemaIdentifier({ name: named.name, kind: "enum" });
+      state.zodSchema = getDepSchemaIdentifier({ name: named.name, kind: "enum" });
     } else if (isObjectType(named) || isInterfaceType(named)) {
       // Nested selection set
       if (!selectionSet) {
         throw new Error(`Field of type ${named.name} requires a selection set`);
       }
-      zodSchema = getZodSelection({ schema, selectionSet, parentType: named, deps });
+      state.zodSchema = getZodSelection({ schema, selectionSet, parentType: named, deps });
     } else if (isUnionType(named)) {
       // Union
       if (!selectionSet) {
@@ -156,20 +175,30 @@ function getZodOutput({ schema, outputType, selectionSet, deps }: ZodFromOutputI
         .map((possibleType) =>
           getZodSelection({ schema, selectionSet, parentType: possibleType, deps }),
         );
-      zodSchema =
+      state.zodSchema =
         possibleSchemas.length === 1
           ? possibleSchemas[0]
           : `z.union([${possibleSchemas.join(", ")}])`;
     } else {
-      zodSchema = "z.unknown()";
+      state.zodSchema = "z.unknown()";
     }
   }
 
-  if (nullable) {
-    zodSchema += ".nullable()";
+  state = applyOutputDirectives(state, directives ?? []);
+
+  if (state.nullable) {
+    state.zodSchema += ".nullable()";
   }
 
-  return zodSchema;
+  if (state.optional) {
+    state.zodSchema += ".optional()";
+  }
+
+  for (const transform of state.transforms) {
+    state.zodSchema += transform;
+  }
+
+  return state.zodSchema;
 }
 
 type ResolveInlineFragmentParentTypeInput = {

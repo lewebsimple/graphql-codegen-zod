@@ -14,7 +14,12 @@ import {
 
 import type { DepIdentifier } from "./deps";
 import { getEnumType } from "./enum";
-import { getZodEnum, getZodScalar } from "./zod";
+import { getZodEnum, getZodScalar, type ZodSchemaState } from "./zod";
+
+/** Input/variables schema builder state. */
+export type ZodInputState = ZodSchemaState & {
+  inputType: GraphQLInputType;
+};
 
 export type ZodFromVariablesInput = {
   schema: GraphQLSchema;
@@ -92,24 +97,30 @@ const getZodInput = ({
   defaultValue,
   allowUndefined = true,
 }: ZodFromInput): string => {
-  let nullable = true;
+  let state: ZodInputState = {
+    inputType,
+    zodSchema: "",
+    nullable: true,
+    optional: allowUndefined,
+    defaultValue,
+    transforms: [],
+  };
 
   // Unwrap non-null types
-  if (isNonNullType(inputType)) {
-    inputType = inputType.ofType;
-    nullable = false;
+  if (isNonNullType(state.inputType)) {
+    state.inputType = state.inputType.ofType;
+    state.nullable = false;
+    state.optional = false;
   }
 
-  let zodSchema: string;
-
-  if (isListType(inputType)) {
-    zodSchema = `z.array(${getZodInput({ schema, inputType: inputType.ofType, deps, defaultValue: undefined, allowUndefined: false })})`;
+  if (isListType(state.inputType)) {
+    state.zodSchema = `z.array(${getZodInput({ schema, inputType: state.inputType.ofType, deps, defaultValue: undefined, allowUndefined: false })})`;
   } else {
-    const named = getNamedType(inputType);
+    const named = getNamedType(state.inputType);
 
     if (isScalarType(named)) {
       // Scalar
-      zodSchema = getZodScalar(named.name);
+      state.zodSchema = getZodScalar(named.name);
     } else if (isEnumType(named)) {
       // Enum
       const enumType = getEnumType(schema, named.name);
@@ -117,7 +128,7 @@ const getZodInput = ({
         throw new Error(`Enum type ${named.name} not found in schema`);
       }
       deps.add({ name: named.name, kind: "enum" });
-      zodSchema = getZodEnum(enumType);
+      state.zodSchema = getZodEnum(enumType);
     } else if (isInputObjectType(named)) {
       // Nested input object
       const fields = Object.values(named.getFields()).map((field) => {
@@ -129,20 +140,27 @@ const getZodInput = ({
         });
         return `${field.name}: ${fieldExpr}`;
       });
-      zodSchema = `z.object({${fields.join(", ")}})`;
+      state.zodSchema = `z.object({${fields.join(", ")}})`;
     } else {
-      zodSchema = "z.unknown()";
+      state.zodSchema = "z.unknown()";
     }
   }
 
-  if (nullable) {
-    zodSchema += ".nullable()";
-    if (allowUndefined) zodSchema += ".optional()";
+  if (state.nullable) {
+    state.zodSchema += ".nullable()";
   }
 
-  if (defaultValue !== undefined) {
-    zodSchema += `.default(${JSON.stringify(defaultValue)})`;
+  if (state.optional) {
+    state.zodSchema += ".optional()";
   }
 
-  return zodSchema;
+  if (state.defaultValue !== undefined) {
+    state.zodSchema += `.default(${JSON.stringify(state.defaultValue)})`;
+  }
+
+  for (const transform of state.transforms) {
+    state.zodSchema += transform;
+  }
+
+  return state.zodSchema;
 };

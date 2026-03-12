@@ -2,7 +2,7 @@ fragment Viewer on User {
   id
   email
   role
-  name
+  name @required
 }
 
 query GetUser($id: ID!) {

@@ -8,11 +8,11 @@ import {
 
 export const enums = {
   UserRole: { schema: zodUserRoleEnumSchema },
-};
+} as const;
 
 export const fragments = {
   Viewer: { schema: zodViewerFragmentSchema },
-};
+} as const;
 
 export const operations = {
   GetUser: {
@@ -21,4 +21,4 @@ export const operations = {
     resultSchema: zodGetUserResultSchema,
     variablesSchema: zodGetUserVariablesSchema,
   },
-};
+} as const;

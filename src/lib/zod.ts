@@ -1,9 +1,18 @@
 import type { GraphQLEnumType } from "graphql/type/definition";
 
+/** Shared schema state used while building Zod expressions. */
+export type ZodSchemaState = {
+  zodSchema: string;
+  nullable: boolean;
+  optional: boolean;
+  defaultValue?: unknown;
+  transforms: string[];
+};
+
 /**
  * Get Zod schema from a GraphQL scalar type.
  * @param scalarName GraphQL scalar name.
- * @returns ZodDefinition object.
+ * @returns Zod schema string.
  */
 export function getZodScalar(scalarName: string): string {
   switch (scalarName) {
@@ -26,7 +35,7 @@ export function getZodScalar(scalarName: string): string {
 /**
  * Get Zod schema from GraphQL enum.
  * @param enumType Enum type metadata.
- * @returns ZodDefinition object.
+ * @returns Zod schema string.
  */
 export function getZodEnum(enumType: GraphQLEnumType): string {
   const values = enumType
