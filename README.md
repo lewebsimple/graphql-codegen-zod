@@ -38,12 +38,14 @@ The preset generates Zod schemas for:
 
 ## Document Directives
 
-Directives are applied through a hook-based mechanism in `src/lib/directives.ts`, split into:
+Directives are applied through a hook-based mechanism in `src/directives.ts`, split into:
 
 - input directives hooks
 - output directives hooks
 
 This keeps directive behavior modular and makes adding new directives easier.
+
+Directive registry data (metadata + state transforms) lives in `src/lib/directives.ts`.
 
 Supported directives:
 
@@ -65,3 +67,15 @@ Notes:
 
 - If your codegen setup validates documents, define these directives in your schema (or schema extensions) so validation succeeds.
 - `@required` currently applies to operation/fragment result schemas (selection sets).
+
+### Tooling Schema Extension
+
+If you want editor/codegen validation and autocomplete for directives, import the schema extender from the dedicated subpath:
+
+```ts
+import { extendSchemaWithZodDirectives } from "@lewebsimple/graphql-codegen-zod/directives";
+```
+
+This helper is intentionally exported separately from the preset entrypoint.
+
+It always extends the schema with all supported Zod directive locations (input and output).

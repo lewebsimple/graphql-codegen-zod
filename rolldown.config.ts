@@ -10,6 +10,7 @@ const external = [
 export default defineConfig({
   input: {
     preset: "src/preset.ts",
+    directives: "src/directives.ts",
     plugin: "src/plugin.ts",
   },
   output: {

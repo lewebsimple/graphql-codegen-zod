@@ -1,4 +1,10 @@
-import type { GraphQLInputType, GraphQLSchema, TypeNode, VariableDefinitionNode } from "graphql";
+import type {
+  DirectiveNode,
+  GraphQLInputType,
+  GraphQLSchema,
+  TypeNode,
+  VariableDefinitionNode,
+} from "graphql";
 import {
   GraphQLList,
   GraphQLNonNull,
@@ -13,6 +19,7 @@ import {
 } from "graphql";
 
 import type { DepIdentifier } from "./deps";
+import { applyInputDirectives } from "./directives";
 import { getEnumType } from "./enum";
 import { getZodEnum, getZodScalar, type ZodSchemaState } from "./zod";
 
@@ -44,7 +51,13 @@ export function getZodVariables({ schema, variablesDef, deps }: ZodFromVariables
     const defaultValue = variableDef.defaultValue
       ? valueFromASTUntyped(variableDef.defaultValue)
       : undefined;
-    const zodInput = getZodInput({ schema, inputType, deps, defaultValue });
+    const zodInput = getZodInput({
+      schema,
+      inputType,
+      directives: variableDef.directives ?? [],
+      deps,
+      defaultValue,
+    });
     return `${variableName}: ${zodInput}`;
   });
 
@@ -77,6 +90,7 @@ function resolveInputType(schema: GraphQLSchema, node: TypeNode): GraphQLInputTy
 export type ZodFromInput = {
   schema: GraphQLSchema;
   inputType: GraphQLInputType;
+  directives?: readonly DirectiveNode[];
   deps: Set<DepIdentifier>;
   defaultValue?: unknown;
   allowUndefined?: boolean;
@@ -93,6 +107,7 @@ export type ZodFromInput = {
 const getZodInput = ({
   schema,
   inputType,
+  directives,
   deps,
   defaultValue,
   allowUndefined = true,
@@ -145,6 +160,8 @@ const getZodInput = ({
       state.zodSchema = "z.unknown()";
     }
   }
+
+  state = applyInputDirectives(state, directives ?? []);
 
   if (state.nullable) {
     state.zodSchema += ".nullable()";
