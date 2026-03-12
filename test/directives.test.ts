@@ -1,5 +1,5 @@
 import type { Types } from "@graphql-codegen/plugin-helpers";
-import { buildSchema, parse } from "graphql";
+import { buildSchema, OperationTypeNode, parse } from "graphql";
 import { describe, expect, it } from "vitest";
 
 import { getOperationPluginOutput } from "../src/lib/operation";
@@ -34,7 +34,7 @@ describe("document directives", () => {
     const output = getOperationPluginOutput({
       schema,
       documents,
-      operationType: "query",
+      operationType: OperationTypeNode.QUERY,
       operationName: "Viewer",
     });
 
@@ -69,7 +69,7 @@ describe("document directives", () => {
     const output = getOperationPluginOutput({
       schema,
       documents,
-      operationType: "query",
+      operationType: OperationTypeNode.QUERY,
       operationName: "Viewer",
     });
 
