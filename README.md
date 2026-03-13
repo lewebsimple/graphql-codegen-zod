@@ -45,7 +45,7 @@ Directives are applied through a hook-based mechanism in `src/directives.ts`, sp
 
 This keeps directive behavior modular and makes adding new directives easier.
 
-Directive registry data (metadata + state transforms) lives in `src/lib/directives.ts`.
+Directive registry data (metadata + state transforms) lives in `src/directives/`.
 
 Supported directives:
 

@@ -3,7 +3,7 @@ import { buildSchema, OperationTypeNode, parse } from "graphql";
 import { describe, expect, it } from "vitest";
 
 import { extendSchemaWithZodDirectives } from "../src/directives";
-import { getOperationPluginOutput } from "../src/lib/operation";
+import { getOperationPluginOutput } from "../src/generator/operation";
 
 describe("document directives", () => {
   it("applies @required on output fields by forcing non-null output schema", () => {

@@ -1,38 +1,37 @@
 import type { Types } from "@graphql-codegen/plugin-helpers";
 import type { GraphQLSchema } from "graphql";
 
-import type { DepIdentifier } from "./deps";
-import { getDepSchemaIdentifier, getImports } from "./deps";
-import { getEnumTypes } from "./enum";
-import { getFragmentDefinitions } from "./fragment";
-import { getOperationDefinitions } from "./operation";
+import type { DepIdentifier } from "../core/deps";
 
+import { getDepSchemaIdentifier, getImports } from "./deps";
+import { getEnumTypes, getFragmentDefinitions, getOperationDefinitions } from "./documents";
+
+/** Options for registry module generation. */
 export type GetRegistryPluginOutputOptions = {
+  /** GraphQL schema used for enum discovery. */
   schema: GraphQLSchema;
+  /** Parsed GraphQL documents used for fragment and operation discovery. */
   documents: Types.DocumentFile[];
 };
 
 /**
- * Generates the module for the top-level registry.
- * @param schema GraphQL schema.
- * @param documents Parsed GraphQL documents.
- * @returns Generated module source content.
+ * Generates the top-level registry module.
+
+ * @param options Registry generation options.
+ * @returns Generated registry module source.
  */
 export function getRegistryPluginOutput({
   schema,
   documents,
 }: GetRegistryPluginOutputOptions): string {
-  // Collect dependencies for imports and registry entries for enums, fragments, and operations.
   const deps = new Set<DepIdentifier>();
 
-  // Enums
   const enumEntries: string[] = [];
   for (const { name } of getEnumTypes(schema)) {
     deps.add({ name, kind: "enum" });
     enumEntries.push(getRegistryEntry({ name, kind: "enum" }));
   }
 
-  // Fragments
   const fragmentEntries: string[] = [];
   for (const fragmentDef of getFragmentDefinitions(documents)) {
     const fragmentName = fragmentDef.name.value;
@@ -40,7 +39,6 @@ export function getRegistryPluginOutput({
     fragmentEntries.push(getRegistryEntry({ name: fragmentName, kind: "fragment" }));
   }
 
-  // Documents / Operations (flat registry keyed by operation name)
   const operationEntries: string[] = [];
   for (const operationDef of getOperationDefinitions(documents)) {
     const operationType = operationDef.operation;
@@ -69,9 +67,10 @@ export function getRegistryPluginOutput({
 }
 
 /**
- * Generates a registry entry for the given dependency.
- * @param dep Dependency identifier.
- * @returns Registry entry as a string.
+ * Renders a single registry entry.
+
+ * @param dep Dependency to serialize into the registry.
+ * @returns Registry entry source line or block.
  */
 function getRegistryEntry({ name, kind }: DepIdentifier): string {
   switch (kind) {
@@ -93,7 +92,7 @@ function getRegistryEntry({ name, kind }: DepIdentifier): string {
         `    document: ${name}Document,`,
         `    resultSchema: ${getDepSchemaIdentifier({ name, kind, target: "result" })},`,
         `    variablesSchema: ${getDepSchemaIdentifier({ name, kind, target: "variables" })},`,
-        `  },`,
+        "  },",
       ].join("\n");
   }
 }

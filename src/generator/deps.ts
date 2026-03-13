@@ -1,20 +1,17 @@
 import { capitalize } from "es-toolkit/string";
 
-/** DepIdentifier represents a dependency identifier. */
-export type DepIdentifier = {
-  name: string;
-  kind: "document" | "enum" | "fragment" | "query" | "mutation" | "subscription";
-};
+import type { DepIdentifier } from "../core/deps";
 
-/** DepSchemaIdentifier represents the schema identifier for a dependency. */
+/** Schema symbol name variants used in generated imports. */
 export type DepSchemaIdentifier =
   | { name: string; kind: "document" | "enum" | "fragment" }
   | { name: string; kind: "query" | "mutation" | "subscription"; target: "result" | "variables" };
 
 /**
- * Generates the schema identifier for a dependency.
- * @param dep Dependency identifier and schema target.
- * @returns Schema identifier as a string.
+ * Builds the exported schema identifier for a dependency.
+
+ * @param dep Dependency descriptor and optional schema target.
+ * @returns Generated identifier name.
  */
 export function getDepSchemaIdentifier(dep: DepSchemaIdentifier): string {
   switch (dep.kind) {
@@ -34,16 +31,21 @@ export function getDepSchemaIdentifier(dep: DepSchemaIdentifier): string {
   }
 }
 
+/** Options for generated import collection. */
 export type GetImportsOptions = {
+  /** Dependencies that should be imported. */
   deps?: Set<DepIdentifier>;
+  /** Relative root path used by generated imports. */
   rootDir: string;
+  /** Whether the file should import `z` from `zod`. */
   zod: boolean;
 };
 
 /**
- * Generates import statements for the given dependencies.
- * @param options Options for generating imports.
- * @returns Array of import statements as strings.
+ * Builds import lines for generated modules.
+
+ * @param options Import generation options.
+ * @returns Import lines in stable order, including a trailing blank line when non-empty.
  */
 export function getImports({
   deps = new Set<DepIdentifier>(),
@@ -79,7 +81,7 @@ export function getImports({
       case "subscription":
         imports.push(
           [
-            `import {`,
+            "import {",
             `  resultSchema as ${getDepSchemaIdentifier({ name, kind, target: "result" })},`,
             `  variablesSchema as ${getDepSchemaIdentifier({ name, kind, target: "variables" })},`,
             `} from "./operations/${name}.${kind}";`,
@@ -88,6 +90,7 @@ export function getImports({
         break;
     }
   }
+
   if (imports.length > 0) {
     imports.push("");
   }
@@ -95,6 +98,12 @@ export function getImports({
   return imports;
 }
 
+/**
+ * Sorts dependencies deterministically for stable output.
+
+ * @param deps Dependencies to sort.
+ * @returns Sorted dependency array.
+ */
 function sortDeps(deps: Set<DepIdentifier>): DepIdentifier[] {
   return [...deps].sort((a, b) => {
     if (a.kind === b.kind) {

@@ -2,7 +2,7 @@ import type { Types } from "@graphql-codegen/plugin-helpers";
 import { buildSchema, parse } from "graphql";
 import { describe, expect, it } from "vitest";
 
-import { getTypesPluginOutput } from "../src/lib/types";
+import { getTypesPluginOutput } from "../src/generator/types";
 
 describe("types generator", () => {
   it("generates a type-only barrel for enums, fragments, and operations", () => {

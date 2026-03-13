@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getDepSchemaIdentifier } from "../src/lib/deps";
+import { getDepSchemaIdentifier } from "../src/generator/deps";
 
 describe("deps", () => {
   it("builds identifiers for enum and fragment schemas", () => {

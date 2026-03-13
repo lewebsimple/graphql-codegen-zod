@@ -10,14 +10,18 @@ import * as typescriptOperationsPlugin from "@graphql-codegen/typescript-operati
 import type { TypeScriptDocumentsPluginConfig } from "@graphql-codegen/typescript-operations";
 import { buildASTSchema } from "graphql";
 
-import { getEnumTypes } from "./lib/enum";
-import { getFragmentDefinitions } from "./lib/fragment";
-import { getOperationDefinitions } from "./lib/operation";
+import {
+  getEnumTypes,
+  getFragmentDefinitions,
+  getOperationDefinitions,
+} from "./generator/documents";
 import * as zodPlugin from "./plugin";
 
+/** GraphQL Code Generator preset for multi-file Zod output. */
 export const preset: Types.OutputPreset = {
   /**
    * Builds the list of generate sections for the preset output.
+   *
    * @param options Codegen output options.
    * @returns Generate sections consumed by GraphQL Code Generator.
    */

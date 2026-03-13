@@ -2,7 +2,7 @@ import type { Types } from "@graphql-codegen/plugin-helpers";
 import { buildSchema, parse } from "graphql";
 import { describe, expect, it } from "vitest";
 
-import { getRegistryPluginOutput } from "../src/lib/registry";
+import { getRegistryPluginOutput } from "../src/generator/registry";
 
 describe("registry generator", () => {
   it("generates enums, fragments, and operations registries", () => {
