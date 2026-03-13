@@ -1,5 +1,5 @@
-import type { ZodTypeNode } from "../core/ZodTypeNode";
-import type { ZodTypeState } from "../core/ZodTypeState";
+import type { ZodTypeNode } from "../core/zod-type-node";
+import type { ZodTypeState } from "../core/zod-type-state";
 
 /** Named pipeline stage. */
 export type PipelineStageName = "transform" | "validate";

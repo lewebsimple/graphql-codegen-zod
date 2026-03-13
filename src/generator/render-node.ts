@@ -9,11 +9,15 @@ import {
 } from "graphql";
 
 import type { DepIdentifier } from "../core/deps";
-import type { ZodTypeNode } from "../core/ZodTypeNode";
-import { createInitialZodTypeState } from "../core/ZodTypeState";
+import type { ZodTypeNode } from "../core/zod-type-node";
+import {
+  createInitialZodTypeState,
+  deriveRenderStateCapabilities,
+  syncStatePolicyFlags,
+} from "../core/zod-type-state";
 import { directiveRegistry } from "../directives/index";
 import { executePipeline } from "../pipeline/execute";
-import { resolveTypeNode } from "../resolver/resolveTypeNode";
+import { resolveTypeNode } from "../resolver/resolve-type-node";
 
 import { getDepSchemaIdentifier } from "./deps";
 
@@ -151,7 +155,7 @@ function renderObjectLike(
   schema: GraphQLSchema,
   deps: Set<DepIdentifier>,
 ): string {
-  if (node.capabilities.has("output")) {
+  if (node.capabilities.has("io:output")) {
     return renderOutputObject(node, schema, deps);
   }
 
@@ -314,16 +318,19 @@ function applyPipeline({
   deps: Set<DepIdentifier>;
   allowOptional: boolean;
 }): string {
-  const ioType = node.capabilities.has("input") ? "input" : "output";
+  const ioType = node.capabilities.has("io:input") ? "input" : "output";
 
-  const state = createInitialZodTypeState(ioType);
-  state.schema = baseSchema;
-  state.nullable = node.capabilities.has("nullable");
-  state.optional = ioType === "input" && allowOptional;
-  state.defaultValue = node.defaultValue;
-  state.deps = deps;
-  state.capabilities = node.capabilities;
-  state.directives = directiveRegistry;
+  const state = syncStatePolicyFlags({
+    ...createInitialZodTypeState(ioType),
+    schema: baseSchema,
+    defaultValue: node.defaultValue,
+    deps,
+    capabilities: deriveRenderStateCapabilities({
+      nodeCapabilities: node.capabilities,
+      allowOptional,
+    }),
+    directives: directiveRegistry,
+  });
 
   return executePipeline({ node, state }).schema;
 }

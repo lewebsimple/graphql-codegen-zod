@@ -51,6 +51,7 @@ export type GqlViewerFragment = {
 
 export type GqlGetUserQueryVariables = Exact<{
   id: Scalars["ID"]["input"];
+  email?: InputMaybe<Scalars["String"]["input"]>;
 }>;
 
 export type GqlGetUserQuery = {
@@ -75,12 +76,28 @@ export const ViewerFragmentDoc = {
         kind: "SelectionSet",
         selections: [
           { kind: "Field", name: { kind: "Name", value: "id" } },
-          { kind: "Field", name: { kind: "Name", value: "email" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "email" },
+            directives: [{ kind: "Directive", name: { kind: "Name", value: "email" } }],
+          },
           { kind: "Field", name: { kind: "Name", value: "role" } },
           {
             kind: "Field",
             name: { kind: "Name", value: "name" },
-            directives: [{ kind: "Directive", name: { kind: "Name", value: "required" } }],
+            directives: [
+              {
+                kind: "Directive",
+                name: { kind: "Name", value: "coerceNull" },
+                arguments: [
+                  {
+                    kind: "Argument",
+                    name: { kind: "Name", value: "value" },
+                    value: { kind: "StringValue", value: "Unknown", block: false },
+                  },
+                ],
+              },
+            ],
           },
         ],
       },
@@ -102,6 +119,12 @@ export const GetUserDocument = {
             kind: "NonNullType",
             type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
           },
+        },
+        {
+          kind: "VariableDefinition",
+          variable: { kind: "Variable", name: { kind: "Name", value: "email" } },
+          type: { kind: "NamedType", name: { kind: "Name", value: "String" } },
+          directives: [{ kind: "Directive", name: { kind: "Name", value: "email" } }],
         },
       ],
       selectionSet: {
@@ -133,12 +156,28 @@ export const GetUserDocument = {
         kind: "SelectionSet",
         selections: [
           { kind: "Field", name: { kind: "Name", value: "id" } },
-          { kind: "Field", name: { kind: "Name", value: "email" } },
+          {
+            kind: "Field",
+            name: { kind: "Name", value: "email" },
+            directives: [{ kind: "Directive", name: { kind: "Name", value: "email" } }],
+          },
           { kind: "Field", name: { kind: "Name", value: "role" } },
           {
             kind: "Field",
             name: { kind: "Name", value: "name" },
-            directives: [{ kind: "Directive", name: { kind: "Name", value: "required" } }],
+            directives: [
+              {
+                kind: "Directive",
+                name: { kind: "Name", value: "coerceNull" },
+                arguments: [
+                  {
+                    kind: "Argument",
+                    name: { kind: "Name", value: "value" },
+                    value: { kind: "StringValue", value: "Unknown", block: false },
+                  },
+                ],
+              },
+            ],
           },
         ],
       },

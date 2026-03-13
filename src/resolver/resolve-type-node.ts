@@ -12,7 +12,7 @@ import {
 } from "graphql";
 
 import type { Capability } from "../core/capabilities";
-import type { ZodTypeNode } from "../core/ZodTypeNode";
+import type { ZodTypeNode } from "../core/zod-type-node";
 
 /**
  * Resolves a GraphQL type into a renderable resolver node.
@@ -31,6 +31,7 @@ export function resolveTypeNode({
 }): { node: ZodTypeNode; nullable: boolean } {
   let nullable = true;
   let currentType = graphqlType;
+  const ioCapability: Capability = ioType === "input" ? "io:input" : "io:output";
 
   if (isNonNullType(currentType)) {
     nullable = false;
@@ -39,10 +40,11 @@ export function resolveTypeNode({
 
   if (isListType(currentType)) {
     const child = resolveTypeNode({ graphqlType: currentType.ofType, ioType }).node;
-    const capabilities: Capability[] = ["list", ioType];
-    if (nullable) {
-      capabilities.push("nullable");
-    }
+    const capabilities: Capability[] = [
+      "type:list",
+      ioCapability,
+      nullable ? "null:allowed" : "null:rejected",
+    ];
 
     return {
       node: {
@@ -73,10 +75,19 @@ export function resolveTypeNode({
     kind = "union";
   }
 
-  const capabilities: Capability[] = [kind, ioType];
-  if (nullable) {
-    capabilities.push("nullable");
-  }
+  const typeCapability: Capability =
+    kind === "scalar"
+      ? "type:scalar"
+      : kind === "enum"
+        ? "type:enum"
+        : kind === "object"
+          ? "type:object"
+          : "type:union";
+  const capabilities: Capability[] = [
+    typeCapability,
+    ioCapability,
+    nullable ? "null:allowed" : "null:rejected",
+  ];
 
   return {
     node: {

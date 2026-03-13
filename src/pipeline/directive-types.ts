@@ -1,9 +1,10 @@
 import type { DirectiveLocation, DirectiveNode } from "graphql";
 
-import type { Capability } from "../core/capabilities";
-import type { ZodTypeNode } from "../core/ZodTypeNode";
-import type { ZodTypeState } from "../core/ZodTypeState";
-import type { PipelineStageName } from "../pipeline/stages";
+import type { Capability, CapabilityTransition } from "../core/capabilities";
+import type { ZodTypeNode } from "../core/zod-type-node";
+import type { ZodTypeState } from "../core/zod-type-state";
+
+import type { PipelineStageName } from "./stages";
 
 /** Directive argument metadata used for SDL generation. */
 export type DirectiveArg = {
@@ -14,7 +15,7 @@ export type DirectiveArg = {
 };
 
 /** Directive implementation contract used by the pipeline. */
-export type DirectiveDefinition = {
+export type DirectiveDefinition = CapabilityTransition & {
   /** Directive name without the `@` prefix. */
   name: string;
   /** Pipeline stage where the directive runs. */

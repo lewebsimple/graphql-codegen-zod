@@ -7,9 +7,9 @@ import type {
 import { isInterfaceType, isObjectType, isUnionType } from "graphql";
 
 import type { Capability } from "../core/capabilities";
-import type { ZodTypeNode } from "../core/ZodTypeNode";
+import type { ZodTypeNode } from "../core/zod-type-node";
 
-import { resolveTypeNode } from "./resolveTypeNode";
+import { resolveTypeNode } from "./resolve-type-node";
 
 /**
  * Resolves a selection set into a tree of renderable resolver nodes.
@@ -37,7 +37,7 @@ export function resolveSelection({
           graphqlType: parentType,
           children: [],
           directives: selection.directives ?? [],
-          capabilities: new Set<Capability>(["scalar", "output"]),
+          capabilities: new Set<Capability>(["type:scalar", "io:output", "null:rejected"]),
           name: "__typename",
         });
         continue;
@@ -89,7 +89,12 @@ export function resolveSelection({
         graphqlType: parentType,
         children: [],
         directives: [],
-        capabilities: new Set<Capability>(["object", "output"]),
+        capabilities: new Set<Capability>([
+          "type:object",
+          "io:output",
+          "fragment:named",
+          "null:rejected",
+        ]),
         name: selection.name.value,
       });
       continue;
@@ -110,7 +115,12 @@ export function resolveSelection({
         parentType: parent,
       }).children,
       directives: selection.directives ?? [],
-      capabilities: new Set<Capability>(["inline-fragment", "output"]),
+      capabilities: new Set<Capability>([
+        "type:object",
+        "io:output",
+        "fragment:inline",
+        "null:rejected",
+      ]),
       name: typeCondition,
     });
   }
@@ -120,7 +130,7 @@ export function resolveSelection({
     graphqlType: parentType,
     children,
     directives: [],
-    capabilities: new Set<Capability>(["object", "output"]),
+    capabilities: new Set<Capability>(["type:object", "io:output", "null:rejected"]),
     name: parentType.name,
   };
 }

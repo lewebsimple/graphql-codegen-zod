@@ -1,29 +1,23 @@
-import type { DirectiveNode } from "graphql";
+import {
+  applyCapabilityTransition,
+  areCapabilitySetsEqual,
+  assertStateCapabilityInvariants,
+  hasCapabilities,
+  validateCapabilityTransition,
+} from "../core/capabilities";
+import type { ZodTypeNode } from "../core/zod-type-node";
+import { syncStatePolicyFlags, type ZodTypeState } from "../core/zod-type-state";
 
-import { hasCapabilities, type Capability } from "../core/capabilities";
-import type { ZodTypeNode } from "../core/ZodTypeNode";
-import type { ZodTypeState } from "../core/ZodTypeState";
-
+import type { DirectiveDefinition } from "./directive-types";
 import type { PipelineStageName } from "./stages";
 
-/** Pipeline-scoped directive definition used during execution. */
-export type DirectiveDefinition = {
-  /** Directive name without the `@` prefix. */
-  name: string;
-  /** Stage where the directive is allowed to run. */
-  stage: PipelineStageName;
-  /** Capabilities required on the current node. */
-  requires: readonly Capability[];
-  /** Directive implementation for this stage. */
-  apply: (input: {
-    /** Current rendering state. */
-    state: ZodTypeState;
-    /** Resolver node being transformed. */
-    node: ZodTypeNode;
-    /** Source directive AST node. */
-    directive: DirectiveNode;
-  }) => ZodTypeState;
-};
+function getDirectiveGuardrailError(
+  directiveName: string,
+  stage: PipelineStageName,
+  rule: string,
+): Error {
+  return new Error(`Capability guardrail violation for @${directiveName} at ${stage}: ${rule}`);
+}
 
 /**
  * Applies directives matching a single pipeline stage.
@@ -48,20 +42,62 @@ export function applyDirectiveStage(
       continue;
     }
 
-    if (!hasCapabilities(nextState.capabilities, definition.requires)) {
-      nextState = {
-        ...nextState,
-        issues: [
-          ...nextState.issues,
-          {
-            message: `Directive @${definition.name} requires capabilities: ${definition.requires.join(", ")}`,
-          },
-        ],
-      };
-      continue;
+    try {
+      assertStateCapabilityInvariants(nextState.capabilities);
+    } catch (error) {
+      throw getDirectiveGuardrailError(
+        definition.name,
+        stage,
+        error instanceof Error ? error.message : String(error),
+      );
     }
 
-    nextState = definition.apply({ state: nextState, node, directive });
+    if (!hasCapabilities(nextState.capabilities, definition.requires)) {
+      const missingCapabilities = definition.requires.filter(
+        (capability) => !nextState.capabilities.has(capability),
+      );
+      throw getDirectiveGuardrailError(
+        definition.name,
+        stage,
+        `missing required capabilities: ${missingCapabilities.join(", ")}`,
+      );
+    }
+
+    const capabilitiesBeforeApply = new Set(nextState.capabilities);
+    const appliedState = definition.apply({ state: nextState, node, directive });
+
+    if (!areCapabilitySetsEqual(appliedState.capabilities, capabilitiesBeforeApply)) {
+      throw getDirectiveGuardrailError(
+        definition.name,
+        stage,
+        "directive apply() must not mutate capabilities directly",
+      );
+    }
+
+    try {
+      validateCapabilityTransition(capabilitiesBeforeApply, definition);
+    } catch (error) {
+      throw getDirectiveGuardrailError(
+        definition.name,
+        stage,
+        error instanceof Error ? error.message : String(error),
+      );
+    }
+
+    nextState = syncStatePolicyFlags({
+      ...appliedState,
+      capabilities: applyCapabilityTransition(capabilitiesBeforeApply, definition),
+    });
+
+    try {
+      assertStateCapabilityInvariants(nextState.capabilities);
+    } catch (error) {
+      throw getDirectiveGuardrailError(
+        definition.name,
+        stage,
+        error instanceof Error ? error.message : String(error),
+      );
+    }
   }
 
   return nextState;

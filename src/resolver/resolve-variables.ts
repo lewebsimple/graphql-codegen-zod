@@ -2,10 +2,10 @@ import type { GraphQLSchema, VariableDefinitionNode } from "graphql";
 import { valueFromASTUntyped } from "graphql";
 
 import type { Capability } from "../core/capabilities";
-import type { ZodTypeNode } from "../core/ZodTypeNode";
+import type { ZodTypeNode } from "../core/zod-type-node";
 
-import { resolveInputType } from "./resolveInputType";
-import { resolveTypeNode } from "./resolveTypeNode";
+import { resolveInputType } from "./resolve-input-type";
+import { resolveTypeNode } from "./resolve-type-node";
 
 /**
  * Resolves operation variables into a renderable input object node.
@@ -43,7 +43,7 @@ export function resolveVariables({
     graphqlType: schema,
     children,
     directives: [],
-    capabilities: new Set<Capability>(["object", "input"]),
+    capabilities: new Set<Capability>(["type:object", "io:input", "null:rejected"]),
     name: "Variables",
   };
 }

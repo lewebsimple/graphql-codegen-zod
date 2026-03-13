@@ -1,6 +1,6 @@
 import type { GraphQLSchema } from "graphql";
 
-import { resolveTypeNode } from "../resolver/resolveTypeNode";
+import { resolveTypeNode } from "../resolver/resolve-type-node";
 
 import { getImports } from "./deps";
 import { getEnumType } from "./documents";
@@ -32,7 +32,8 @@ export function getEnumPluginOutput({ schema, enumName }: GetEnumPluginOutputOpt
   }
 
   const capabilities = new Set(resolved.capabilities);
-  capabilities.delete("nullable");
+  capabilities.delete("null:allowed");
+  capabilities.add("null:rejected");
 
   const zodEnum = renderEnumValuesSchema({ ...resolved, capabilities });
 

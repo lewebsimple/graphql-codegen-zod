@@ -2,8 +2,8 @@ import type { Types } from "@graphql-codegen/plugin-helpers";
 import type { GraphQLObjectType, GraphQLSchema, OperationTypeNode } from "graphql";
 
 import type { DepIdentifier } from "../core/deps";
-import { resolveSelection } from "../resolver/resolveSelection";
-import { resolveVariables } from "../resolver/resolveVariables";
+import { resolveSelection } from "../resolver/resolve-selection";
+import { resolveVariables } from "../resolver/resolve-variables";
 
 import { getImports } from "./deps";
 import { getOperationDefinition } from "./documents";

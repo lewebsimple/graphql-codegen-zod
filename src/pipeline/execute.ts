@@ -1,6 +1,6 @@
 import { buildSchemaExpression } from "../core/schema-builder";
-import type { ZodTypeNode } from "../core/ZodTypeNode";
-import type { ZodTypeState } from "../core/ZodTypeState";
+import type { ZodTypeNode } from "../core/zod-type-node";
+import type { ZodTypeState } from "../core/zod-type-state";
 
 import { applyDirectiveStage } from "./instructions";
 import type { PipelineStage, PipelineStageInput, PipelineStages } from "./stages";

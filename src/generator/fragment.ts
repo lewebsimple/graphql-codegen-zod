@@ -3,7 +3,7 @@ import type { GraphQLSchema } from "graphql";
 import { isInterfaceType, isObjectType } from "graphql";
 
 import type { DepIdentifier } from "../core/deps";
-import { resolveSelection } from "../resolver/resolveSelection";
+import { resolveSelection } from "../resolver/resolve-selection";
 
 import { getImports } from "./deps";
 import { getFragmentDefinition } from "./documents";

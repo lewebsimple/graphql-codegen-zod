@@ -29,7 +29,7 @@ export const preset: Types.OutputPreset = {
     const baseConfig = {
       config: {
         ...options.config,
-        avoidOptionals: { field: true, object: true },
+        avoidOptionals: { field: true, object: false },
         defaultScalarType: "unknown",
         strictScalars: true,
         typesPrefix: "Gql",

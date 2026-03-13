@@ -38,18 +38,21 @@ The preset generates Zod schemas for:
 
 ## Document Directives
 
-Directives are applied through a hook-based mechanism in `src/directives.ts`, split into:
+Directive registry data lives in `src/directives/`, and each directive declares both:
 
-- input directives hooks
-- output directives hooks
+- the capabilities it requires before it may run
+- the capability transitions it performs after it runs
 
-This keeps directive behavior modular and makes adding new directives easier.
-
-Directive registry data (metadata + state transforms) lives in `src/directives/`.
+Internally, capabilities use a prefixed taxonomy such as `io:output`, `type:scalar`,
+`null:allowed`, `optional:rejected`, and `transform:allowed`. These guardrails let
+generation fail deterministically when incompatible directives are composed.
 
 Supported directives:
 
-- `@required` on output fields: removes `.nullable()` from the generated field schema.
+- `@required` on nullable fields or variables: removes `.nullable()` from the generated schema.
+- `@coerceNull` on nullable fields or variables: accepts `null` and transforms it to `undefined` by default, or to a provided fallback.
+- `@default` on nullable output fields: accepts `null` and transforms it to the provided default.
+- `@email` on scalar fields or variables: emits `z.email()`.
 
 Example:
 
@@ -67,6 +70,14 @@ Notes:
 
 - If your codegen setup validates documents, define these directives in your schema (or schema extensions) so validation succeeds.
 - `@required` currently applies to operation/fragment result schemas (selection sets).
+
+### Capability Guardrails
+
+Directive capability violations are hard errors during generation.
+
+- Pre- and post-transition invariants are checked around each directive application.
+- Unknown transition capabilities, overlapping `adds`/`removes`, and invalid removals fail generation.
+- Invalid directive targets or conflicting directive combinations are not downgraded to warnings.
 
 ### Tooling Schema Extension
 

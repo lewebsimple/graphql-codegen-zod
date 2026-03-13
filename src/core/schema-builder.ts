@@ -1,4 +1,4 @@
-import type { ZodTypeState } from "./ZodTypeState";
+import type { ZodTypeState } from "./zod-type-state";
 
 /**
  * Finalizes a schema expression by applying state-driven suffixes.
@@ -9,11 +9,11 @@ import type { ZodTypeState } from "./ZodTypeState";
 export function buildSchemaExpression(state: ZodTypeState): ZodTypeState {
   let schema = state.schema;
 
-  if (state.nullable) {
+  if (state.nullable && state.optional) {
+    schema += ".nullish()";
+  } else if (state.nullable) {
     schema += ".nullable()";
-  }
-
-  if (state.optional) {
+  } else if (state.optional) {
     schema += ".optional()";
   }
 

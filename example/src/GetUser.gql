@@ -1,11 +1,11 @@
 fragment Viewer on User {
   id
-  email
+  email @email
   role
-  name @required
+  name @coerceNull(value: "Unknown")
 }
 
-query GetUser($id: ID!) {
+query GetUser($id: ID!, $email: String @email) {
   getUser(id: $id) {
     ...Viewer
   }
