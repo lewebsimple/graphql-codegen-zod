@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.1.5
+
+[compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.1.4...v0.1.5)
+
+### 🚀 Enhancements
+
+- Input / output directives support ([3f0d289](https://github.com/lewebsimple/graphql-codegen-zod/commit/3f0d289))
+- Directives support ([b6a3077](https://github.com/lewebsimple/graphql-codegen-zod/commit/b6a3077))
+
+### 🩹 Fixes
+
+- Minor test type issue ([42ae7d1](https://github.com/lewebsimple/graphql-codegen-zod/commit/42ae7d1))
+
+### 💅 Refactors
+
+- New pipeline logic ([ce47ed7](https://github.com/lewebsimple/graphql-codegen-zod/commit/ce47ed7))
+- Guardrails by capability ([a76cafc](https://github.com/lewebsimple/graphql-codegen-zod/commit/a76cafc))
+
 ## v0.1.4
 
 [compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.1.3...v0.1.4)

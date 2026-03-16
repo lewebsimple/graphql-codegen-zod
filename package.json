@@ -1,6 +1,6 @@
 {
   "name": "@lewebsimple/graphql-codegen-zod",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "GraphQL Codegen preset for generating Zod schemas.",
   "homepage": "https://github.com/lewebsimple/graphql-codegen-zod#readme",
   "bugs": {
