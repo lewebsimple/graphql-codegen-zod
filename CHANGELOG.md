@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.1.6
+
+[compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.1.5...v0.1.6)
+
+### 🚀 Enhancements
+
+- Selection resolution for nested lists and unions ([37a0a17](https://github.com/lewebsimple/graphql-codegen-zod/commit/37a0a17))
+
 ## v0.1.5
 
 [compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.1.4...v0.1.5)
