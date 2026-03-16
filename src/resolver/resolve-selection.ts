@@ -54,27 +54,42 @@ export function resolveSelection({
         ioType: "output",
       }).node;
 
-      if (selection.selectionSet && resolved.kind === "object") {
-        const named = schema.getType(resolved.name ?? "");
-        if (named && (isObjectType(named) || isInterfaceType(named))) {
-          resolved.children.push(
-            ...resolveSelection({ schema, selectionSet: selection.selectionSet, parentType: named })
-              .children,
-          );
-        }
-      }
+      if (selection.selectionSet) {
+        let currentNode = resolved;
 
-      if (selection.selectionSet && resolved.kind === "union") {
-        const named = schema.getType(resolved.name ?? "");
-        if (named && isUnionType(named)) {
-          for (const possibleType of named.getTypes()) {
-            resolved.children.push(
-              resolveSelection({
+        while (currentNode.kind === "list") {
+          const child = currentNode.children[0];
+          if (!child) {
+            throw new Error("List node is missing a child type");
+          }
+          currentNode = child;
+        }
+
+        if (currentNode.kind === "object") {
+          const named = schema.getType(currentNode.name ?? "");
+          if (named && (isObjectType(named) || isInterfaceType(named))) {
+            currentNode.children.push(
+              ...resolveSelection({
                 schema,
                 selectionSet: selection.selectionSet,
-                parentType: possibleType,
-              }),
+                parentType: named,
+              }).children,
             );
+          }
+        }
+
+        if (currentNode.kind === "union") {
+          const named = schema.getType(currentNode.name ?? "");
+          if (named && isUnionType(named)) {
+            for (const possibleType of named.getTypes()) {
+              currentNode.children.push(
+                resolveSelection({
+                  schema,
+                  selectionSet: selection.selectionSet,
+                  parentType: possibleType,
+                }),
+              );
+            }
           }
         }
       }

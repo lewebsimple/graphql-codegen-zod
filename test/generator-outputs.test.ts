@@ -99,4 +99,51 @@ describe("generator outputs", () => {
     expect(output).toContain("getUser: zodViewerFragmentSchema");
     expect(output).not.toContain("getUser: z.object({}).extend(zodViewerFragmentSchema.shape)");
   });
+
+  it("reuses fragment schemas inside list item selections", () => {
+    const schema = buildSchema(/* GraphQL */ `
+      type Film {
+        title: String
+        director: String
+      }
+
+      type AllFilmsConnection {
+        films: [Film]
+      }
+
+      type Query {
+        allFilms: AllFilmsConnection
+      }
+    `);
+
+    const documents: Types.DocumentFile[] = [
+      {
+        location: "operations.graphql",
+        document: parse(/* GraphQL */ `
+          fragment FilmFields on Film {
+            title
+            director
+          }
+
+          query AllFilms {
+            allFilms {
+              films {
+                ...FilmFields
+              }
+            }
+          }
+        `),
+      },
+    ];
+
+    const output = getOperationPluginOutput({
+      schema,
+      documents,
+      operationType: OperationTypeNode.QUERY,
+      operationName: "AllFilms",
+    });
+
+    expect(output).toContain("films: z.array(zodFilmFieldsFragmentSchema.nullable()).nullable()");
+    expect(output).not.toContain("films: z.array(z.object({  }).nullable()).nullable()");
+  });
 });
