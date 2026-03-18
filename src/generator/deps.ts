@@ -55,7 +55,7 @@ export function getImports({
   const imports: string[] = [];
 
   if (zod) {
-    imports.push('import { z } from "zod";');
+    imports.push('import * as z from "zod";');
   }
 
   for (const { name, kind } of sortDeps(deps)) {
