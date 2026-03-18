@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.1.7
+
+[compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.1.6...v0.1.7)
+
+### 🩹 Fixes
+
+- Zod import ([2b5164d](https://github.com/lewebsimple/graphql-codegen-zod/commit/2b5164d))
+
 ## v0.1.6
 
 [compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.1.5...v0.1.6)
