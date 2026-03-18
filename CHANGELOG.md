@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.1.8
+
+[compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.1.7...v0.1.8)
+
+### 🩹 Fixes
+
+- Types.d.ts => types.ts ([87b6038](https://github.com/lewebsimple/graphql-codegen-zod/commit/87b6038))
+
 ## v0.1.7
 
 [compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.1.6...v0.1.7)
