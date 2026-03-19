@@ -1,6 +1,6 @@
 import { extendSchema, parse, type DirectiveLocation, type GraphQLSchema } from "graphql";
 
-import { directiveRegistry } from "../directives/index";
+import { directiveRegistry } from "./directives/index";
 
 /**
  * Builds SDL definitions for all registered directives.

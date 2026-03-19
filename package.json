@@ -23,9 +23,9 @@
       "types": "./dist/preset.d.ts",
       "default": "./dist/preset.js"
     },
-    "./directives": {
-      "types": "./dist/directives.d.ts",
-      "default": "./dist/directives.js"
+    "./extend-schema": {
+      "types": "./dist/extend-schema.d.ts",
+      "default": "./dist/extend-schema.js"
     },
     "./plugin": {
       "types": "./dist/plugin.d.ts",
