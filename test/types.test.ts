@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { getTypesPluginOutput } from "../src/generator/types";
 
 describe("types generator", () => {
-  it("generates a barrel file for enums, fragments, and operations", () => {
+  it("generates a type-only barrel for enums, fragments, and operations", () => {
     const schema = buildSchema(/* GraphQL */ `
       enum Episode {
         NEWHOPE
