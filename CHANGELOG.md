@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.2.0
+
+[compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.1.9...v0.2.0)
+
+### 🚀 Enhancements
+
+- ⚠️ Enhanced document directives DSL ([2e4b099](https://github.com/lewebsimple/graphql-codegen-zod/commit/2e4b099))
+
+#### ⚠️ Breaking Changes
+
+- ⚠️ Enhanced document directives DSL ([2e4b099](https://github.com/lewebsimple/graphql-codegen-zod/commit/2e4b099))
+
 ## v0.1.9
 
 [compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.1.8...v0.1.9)
