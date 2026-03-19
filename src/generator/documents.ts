@@ -7,7 +7,9 @@ import type {
   OperationDefinitionNode,
   OperationTypeNode,
 } from "graphql";
-import { Kind, isEnumType } from "graphql";
+import { Kind, isEnumType, visit } from "graphql";
+
+import { directiveNames } from "../directives/index";
 
 /**
  * Collects non-introspection enum types from the schema.
@@ -155,4 +157,33 @@ export function getOperationDefinition(
       ({ operation, name }) => operation === operationType && name?.value === operationName,
     ) || null
   );
+}
+
+/**
+ * Removes codegen-only directives from every parsed document file.
+ *
+ * @param documents Parsed GraphQL documents.
+ * @returns Document files ready for runtime artifact generation.
+ */
+export function stripDirectivesFromDocuments(
+  documents: Types.DocumentFile[],
+): Types.DocumentFile[] {
+  if (directiveNames.size === 0) {
+    return documents;
+  }
+
+  return documents.map((documentFile) => {
+    if (!documentFile.document) {
+      return documentFile;
+    }
+
+    return {
+      ...documentFile,
+      document: visit(documentFile.document, {
+        Directive(node) {
+          return directiveNames.has(node.name.value) ? null : undefined;
+        },
+      }),
+    };
+  });
 }

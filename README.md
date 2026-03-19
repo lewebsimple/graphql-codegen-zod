@@ -72,6 +72,7 @@ query AllFilms {
 Notes:
 
 - If your codegen setup validates documents, define these directives in your schema (or schema extensions) so validation succeeds.
+- Generated `documents.ts` artifacts strip these codegen-only directives before emitting runtime `DocumentNode`s.
 - `ITEMS` and `SELF_AND_ITEMS` apply to one list level only.
 - `@nullTo` currently supports built-in GraphQL scalar fallbacks with literal values.
 - These directives currently apply to operation/fragment result schemas and operation variables.

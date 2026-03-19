@@ -16,3 +16,5 @@ export const directiveRegistry: DirectiveRegistry = {
   [nullToEmptyDirective.name]: nullToEmptyDirective,
   [nullToUndefinedDirective.name]: nullToUndefinedDirective,
 };
+
+export const directiveNames: ReadonlySet<string> = new Set(Object.keys(directiveRegistry));

@@ -14,6 +14,7 @@ import {
   getEnumTypes,
   getFragmentDefinitions,
   getOperationDefinitions,
+  stripDirectivesFromDocuments,
 } from "./generator/documents";
 import * as zodPlugin from "./plugin";
 
@@ -66,13 +67,14 @@ export const preset: Types.OutputPreset = {
     // Schema / operations / typed document node
     // ────────────────────────────────────────────────────────────────────────────
 
-    sections.push(
-      section("documents.ts", [
+    sections.push({
+      ...section("documents.ts", [
         { typescript: {} satisfies TypeScriptPluginConfig },
         { typescriptOperations: {} satisfies TypeScriptDocumentsPluginConfig },
         { typedDocumentNode: {} satisfies TypeScriptTypedDocumentNodesConfig },
       ]),
-    );
+      documents: stripDirectivesFromDocuments(baseConfig.documents),
+    });
 
     // ────────────────────────────────────────────────────────────────────────────
     // Enums
