@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.1.9
+
+[compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.1.8...v0.1.9)
+
+### 🚀 Enhancements
+
+- ExtendSchemaWithZodDirectives ([387dadf](https://github.com/lewebsimple/graphql-codegen-zod/commit/387dadf))
+
+### 🩹 Fixes
+
+- Types.d.ts => types.ts" ([5f3fd8b](https://github.com/lewebsimple/graphql-codegen-zod/commit/5f3fd8b))
+- Test for the new extend-schema ([78b6776](https://github.com/lewebsimple/graphql-codegen-zod/commit/78b6776))
+
 ## v0.1.8
 
 [compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.1.7...v0.1.8)
