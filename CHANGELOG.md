@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.1
+
+[compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.2.0...v0.2.1)
+
+### 🩹 Fixes
+
+- Strip directives from typed document nodes ([1778eb7](https://github.com/lewebsimple/graphql-codegen-zod/commit/1778eb7))
+
 ## v0.2.0
 
 [compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.1.9...v0.2.0)
