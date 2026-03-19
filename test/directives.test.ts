@@ -2,7 +2,7 @@ import type { Types } from "@graphql-codegen/plugin-helpers";
 import { buildSchema, OperationTypeNode, parse } from "graphql";
 import { describe, expect, it } from "vitest";
 
-import { extendSchemaWithZodDirectives } from "../src/directives";
+import { extendSchemaWithZodDirectives } from "../src/extend-schema";
 import { getOperationPluginOutput } from "../src/generator/operation";
 
 describe("document directives", () => {
@@ -77,7 +77,7 @@ describe("document directives", () => {
     expect(output).toContain("name: z.string().nullable()");
   });
 
-  it("extends a schema with directive definitions from the registry", () => {
+  it("extends a schema with directive definitions from the extend-schema entrypoint", () => {
     const schema = buildSchema(/* GraphQL */ `
       type Query {
         ping: String!
