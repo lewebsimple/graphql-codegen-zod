@@ -8,7 +8,7 @@ import {
 import type { ZodTypeNode } from "../core/zod-type-node";
 import { syncStatePolicyFlags, type ZodTypeState } from "../core/zod-type-state";
 
-import type { DirectiveDefinition } from "./directive-types";
+import type { DirectiveDefinition } from "./directive-helpers";
 import type { PipelineStageName } from "./stages";
 
 function getDirectiveGuardrailError(

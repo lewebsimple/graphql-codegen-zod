@@ -36,7 +36,7 @@ The preset generates Zod schemas for:
 - operations (result and variables)
 - top-level registry
 
-## Document Directives
+## Document directives
 
 Directive registry data lives in `src/directives/`, and each directive declares both:
 
@@ -49,19 +49,22 @@ generation fail deterministically when incompatible directives are composed.
 
 Supported directives:
 
-- `@required` on nullable fields or variables: removes `.nullable()` from the generated schema.
-- `@coerceNull` on nullable fields or variables: accepts `null` and transforms it to `undefined` by default, or to a provided fallback.
-- `@default` on nullable output fields: accepts `null` and transforms it to the provided default.
 - `@email` on scalar fields or variables: emits `z.email()`.
+- `@nonNull(target: SELF | ITEMS | SELF_AND_ITEMS)` on nullable fields or variables: removes `.nullable()` from the current value, the immediate list item type, or both.
+- `@nullTo(value: ZodValue!, target: SELF | ITEMS)` on nullable scalar fields or variables: accepts `null` and transforms it to the provided literal fallback.
+- `@nullToUndefined` on nullable fields or variables: accepts `null` and transforms it to `undefined`.
+- `@nullToEmpty` on nullable list fields or variables: accepts `null` and transforms it to `[]`.
+- `@filterNullItems` on list fields or variables: filters `null` items out of the immediate list level without rejecting the whole list.
 
 Example:
 
 ```graphql
-directive @required on FIELD
-
-query Viewer {
-  viewer {
-    name @required
+query AllFilms {
+  allFilms @nonNull {
+    films @nullToEmpty @filterNullItems {
+      title @nonNull
+      director @nonNull
+    }
   }
 }
 ```
@@ -69,9 +72,11 @@ query Viewer {
 Notes:
 
 - If your codegen setup validates documents, define these directives in your schema (or schema extensions) so validation succeeds.
-- `@required` currently applies to operation/fragment result schemas (selection sets).
+- `ITEMS` and `SELF_AND_ITEMS` apply to one list level only.
+- `@nullTo` currently supports built-in GraphQL scalar fallbacks with literal values.
+- These directives currently apply to operation/fragment result schemas and operation variables.
 
-### Capability Guardrails
+### Capability guardrails
 
 Directive capability violations are hard errors during generation.
 
@@ -79,14 +84,14 @@ Directive capability violations are hard errors during generation.
 - Unknown transition capabilities, overlapping `adds`/`removes`, and invalid removals fail generation.
 - Invalid directive targets or conflicting directive combinations are not downgraded to warnings.
 
-### Tooling Schema Extension
+### Tooling schema extension
 
 If you want editor/codegen validation and autocomplete for directives, import the schema extender from the dedicated subpath:
 
 ```ts
-import { extendSchemaWithZodDirectives } from "@lewebsimple/graphql-codegen-zod/directives";
+import { extendSchemaWithZodDirectives } from "@lewebsimple/graphql-codegen-zod/extend-schema";
 ```
 
 This helper is intentionally exported separately from the preset entrypoint.
 
-It always extends the schema with all supported Zod directive locations (input and output).
+It extends the schema with the supported directive definitions plus the shared `ZodValue` scalar and `ZodDirectiveTarget` enum used by directive arguments.

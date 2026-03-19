@@ -1,6 +1,6 @@
 import { DirectiveLocation } from "graphql";
 
-import type { DirectiveDefinition } from "../pipeline/directive-types";
+import type { DirectiveDefinition } from "../pipeline/directive-helpers";
 
 /** Adds Zod email validation to scalar fields and variables. */
 export const emailDirective: DirectiveDefinition = {

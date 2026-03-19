@@ -5,79 +5,72 @@ import { describe, expect, it } from "vitest";
 import { extendSchemaWithZodDirectives } from "../src/extend-schema";
 import { getOperationPluginOutput } from "../src/generator/operation";
 
+function getQueryOutput(schemaSDL: string, documentSDL: string): string {
+  const schema = buildSchema(schemaSDL);
+  const documents: Types.DocumentFile[] = [
+    {
+      location: "operations.graphql",
+      document: parse(documentSDL),
+    },
+  ];
+
+  return getOperationPluginOutput({
+    schema,
+    documents,
+    operationType: OperationTypeNode.QUERY,
+    operationName: "Viewer",
+  });
+}
+
 describe("document directives", () => {
-  it("applies @required on output fields by forcing non-null output schema", () => {
-    const schema = buildSchema(/* GraphQL */ `
-      directive @required on FIELD
+  it("applies @nonNull on output fields by forcing non-null output schema", () => {
+    const output = getQueryOutput(
+      /* GraphQL */ `
+        type User {
+          name: String
+        }
 
-      type User {
-        name: String
-      }
-
-      type Query {
-        viewer: User!
-      }
-    `);
-
-    const documents: Types.DocumentFile[] = [
-      {
-        location: "operations.graphql",
-        document: parse(/* GraphQL */ `
-          query Viewer {
-            viewer {
-              name @required
-            }
+        type Query {
+          viewer: User!
+        }
+      `,
+      /* GraphQL */ `
+        query Viewer {
+          viewer {
+            name @nonNull
           }
-        `),
-      },
-    ];
-
-    const output = getOperationPluginOutput({
-      schema,
-      documents,
-      operationType: OperationTypeNode.QUERY,
-      operationName: "Viewer",
-    });
+        }
+      `,
+    );
 
     expect(output).toContain("name: z.string()");
     expect(output).not.toContain("name: z.string().nullable()");
   });
 
-  it("keeps nullable output when @required is not present", () => {
-    const schema = buildSchema(/* GraphQL */ `
-      type User {
-        name: String
-      }
+  it("keeps nullable output when @nonNull is not present", () => {
+    const output = getQueryOutput(
+      /* GraphQL */ `
+        type User {
+          name: String
+        }
 
-      type Query {
-        viewer: User!
-      }
-    `);
-
-    const documents: Types.DocumentFile[] = [
-      {
-        location: "operations.graphql",
-        document: parse(/* GraphQL */ `
-          query Viewer {
-            viewer {
-              name
-            }
+        type Query {
+          viewer: User!
+        }
+      `,
+      /* GraphQL */ `
+        query Viewer {
+          viewer {
+            name
           }
-        `),
-      },
-    ];
-
-    const output = getOperationPluginOutput({
-      schema,
-      documents,
-      operationType: OperationTypeNode.QUERY,
-      operationName: "Viewer",
-    });
+        }
+      `,
+    );
 
     expect(output).toContain("name: z.string().nullable()");
   });
 
-  it("extends a schema with directive definitions from the extend-schema entrypoint", () => {
+  it("extends a schema with the new directive and support type definitions", () => {
     const schema = buildSchema(/* GraphQL */ `
       type Query {
         ping: String!
@@ -85,39 +78,28 @@ describe("document directives", () => {
     `);
 
     const extended = extendSchemaWithZodDirectives(schema);
-    const requiredDirective = extended.getDirective("required");
+    const nonNullDirective = extended.getDirective("nonNull");
 
-    expect(requiredDirective).toBeDefined();
-    expect(requiredDirective?.locations).toContain("FIELD");
-    expect(requiredDirective?.locations).toContain("VARIABLE_DEFINITION");
+    expect(nonNullDirective).toBeDefined();
+    expect(nonNullDirective?.locations).toContain("FIELD");
+    expect(nonNullDirective?.locations).toContain("VARIABLE_DEFINITION");
+    expect(extended.getType("ZodDirectiveTarget")).toBeDefined();
+    expect(extended.getType("ZodValue")).toBeDefined();
   });
 
-  it("applies @required on variable definitions in variables schema", () => {
-    const schema = buildSchema(/* GraphQL */ `
-      directive @required on VARIABLE_DEFINITION
-
-      type Query {
-        viewer(name: String): String
-      }
-    `);
-
-    const documents: Types.DocumentFile[] = [
-      {
-        location: "operations.graphql",
-        document: parse(/* GraphQL */ `
-          query Viewer($name: String @required) {
-            viewer(name: $name)
-          }
-        `),
-      },
-    ];
-
-    const output = getOperationPluginOutput({
-      schema,
-      documents,
-      operationType: OperationTypeNode.QUERY,
-      operationName: "Viewer",
-    });
+  it("applies @nonNull on variable definitions in variables schema", () => {
+    const output = getQueryOutput(
+      /* GraphQL */ `
+        type Query {
+          viewer(name: String): String
+        }
+      `,
+      /* GraphQL */ `
+        query Viewer($name: String @nonNull) {
+          viewer(name: $name)
+        }
+      `,
+    );
 
     expect(output).toContain("name: z.string()");
     expect(output).not.toContain("name: z.string().optional()");
@@ -125,257 +107,192 @@ describe("document directives", () => {
   });
 
   it("applies @email on output fields as z.email()", () => {
-    const schema = buildSchema(/* GraphQL */ `
-      directive @email on FIELD
+    const output = getQueryOutput(
+      /* GraphQL */ `
+        type User {
+          email: String!
+        }
 
-      type User {
-        email: String!
-      }
-
-      type Query {
-        viewer: User!
-      }
-    `);
-
-    const documents: Types.DocumentFile[] = [
-      {
-        location: "operations.graphql",
-        document: parse(/* GraphQL */ `
-          query Viewer {
-            viewer {
-              email @email
-            }
+        type Query {
+          viewer: User!
+        }
+      `,
+      /* GraphQL */ `
+        query Viewer {
+          viewer {
+            email @email
           }
-        `),
-      },
-    ];
-
-    const output = getOperationPluginOutput({
-      schema,
-      documents,
-      operationType: OperationTypeNode.QUERY,
-      operationName: "Viewer",
-    });
+        }
+      `,
+    );
 
     expect(output).toContain("email: z.email()");
     expect(output).not.toContain("email: z.string().email()");
   });
 
   it("applies @email on variables as z.email()", () => {
-    const schema = buildSchema(/* GraphQL */ `
-      directive @email on VARIABLE_DEFINITION
-
-      type Query {
-        viewer(email: String): String
-      }
-    `);
-
-    const documents: Types.DocumentFile[] = [
-      {
-        location: "operations.graphql",
-        document: parse(/* GraphQL */ `
-          query Viewer($email: String @email) {
-            viewer(email: $email)
-          }
-        `),
-      },
-    ];
-
-    const output = getOperationPluginOutput({
-      schema,
-      documents,
-      operationType: OperationTypeNode.QUERY,
-      operationName: "Viewer",
-    });
+    const output = getQueryOutput(
+      /* GraphQL */ `
+        type Query {
+          viewer(email: String): String
+        }
+      `,
+      /* GraphQL */ `
+        query Viewer($email: String @email) {
+          viewer(email: $email)
+        }
+      `,
+    );
 
     expect(output).toContain("email: z.email().nullish()");
     expect(output).not.toContain("email: z.string().email()");
   });
 
-  it("applies @default on output fields", () => {
-    const schema = buildSchema(/* GraphQL */ `
-      directive @default(value: String) on FIELD
+  it("applies @nullTo on output fields", () => {
+    const output = getQueryOutput(
+      /* GraphQL */ `
+        type User {
+          nickname: String
+        }
 
-      type User {
-        name: String
-      }
-
-      type Query {
-        viewer: User!
-      }
-    `);
-
-    const documents: Types.DocumentFile[] = [
-      {
-        location: "operations.graphql",
-        document: parse(/* GraphQL */ `
-          query Viewer {
-            viewer {
-              name @default(value: "Unknown")
-            }
+        type Query {
+          viewer: User!
+        }
+      `,
+      /* GraphQL */ `
+        query Viewer {
+          viewer {
+            nickname @nullTo(value: "Anon")
           }
-        `),
-      },
-    ];
-
-    const output = getOperationPluginOutput({
-      schema,
-      documents,
-      operationType: OperationTypeNode.QUERY,
-      operationName: "Viewer",
-    });
-
-    expect(output).toContain(
-      'name: z.string().nullable().transform((value) => (value == null ? "Unknown" : value))',
+        }
+      `,
     );
-  });
-
-  it('applies @coerceNull(to: "undefined") on output fields', () => {
-    const schema = buildSchema(/* GraphQL */ `
-      directive @coerceNull(to: String) on FIELD
-
-      type User {
-        nickname: String
-      }
-
-      type Query {
-        viewer: User!
-      }
-    `);
-
-    const documents: Types.DocumentFile[] = [
-      {
-        location: "operations.graphql",
-        document: parse(/* GraphQL */ `
-          query Viewer {
-            viewer {
-              nickname @coerceNull(to: "undefined")
-            }
-          }
-        `),
-      },
-    ];
-
-    const output = getOperationPluginOutput({
-      schema,
-      documents,
-      operationType: OperationTypeNode.QUERY,
-      operationName: "Viewer",
-    });
-
-    expect(output).toContain(
-      "nickname: z.string().nullable().transform((value) => (value === null ? undefined : value))",
-    );
-  });
-
-  it("applies bare @coerceNull as undefined coercion on output fields", () => {
-    const schema = buildSchema(/* GraphQL */ `
-      directive @coerceNull on FIELD
-
-      type User {
-        nickname: String
-      }
-
-      type Query {
-        viewer: User!
-      }
-    `);
-
-    const documents: Types.DocumentFile[] = [
-      {
-        location: "operations.graphql",
-        document: parse(/* GraphQL */ `
-          query Viewer {
-            viewer {
-              nickname @coerceNull
-            }
-          }
-        `),
-      },
-    ];
-
-    const output = getOperationPluginOutput({
-      schema,
-      documents,
-      operationType: OperationTypeNode.QUERY,
-      operationName: "Viewer",
-    });
-
-    expect(output).toContain(
-      "nickname: z.string().nullable().transform((value) => (value === null ? undefined : value))",
-    );
-  });
-
-  it("applies @coerceNull(value: ...) on output fields", () => {
-    const schema = buildSchema(/* GraphQL */ `
-      directive @coerceNull(value: String) on FIELD
-
-      type User {
-        nickname: String
-      }
-
-      type Query {
-        viewer: User!
-      }
-    `);
-
-    const documents: Types.DocumentFile[] = [
-      {
-        location: "operations.graphql",
-        document: parse(/* GraphQL */ `
-          query Viewer {
-            viewer {
-              nickname @coerceNull(value: "Anon")
-            }
-          }
-        `),
-      },
-    ];
-
-    const output = getOperationPluginOutput({
-      schema,
-      documents,
-      operationType: OperationTypeNode.QUERY,
-      operationName: "Viewer",
-    });
 
     expect(output).toContain(
       'nickname: z.string().nullable().transform((value) => (value === null ? "Anon" : value))',
     );
   });
 
-  it("applies native GraphQL default values on variable definitions", () => {
-    const schema = buildSchema(/* GraphQL */ `
-      type Query {
-        viewer(name: String): String
-      }
-    `);
+  it("applies @nullToUndefined on output fields", () => {
+    const output = getQueryOutput(
+      /* GraphQL */ `
+        type User {
+          nickname: String
+        }
 
-    const documents: Types.DocumentFile[] = [
-      {
-        location: "operations.graphql",
-        document: parse(/* GraphQL */ `
-          query Viewer($name: String = "Unknown") {
-            viewer(name: $name)
+        type Query {
+          viewer: User!
+        }
+      `,
+      /* GraphQL */ `
+        query Viewer {
+          viewer {
+            nickname @nullToUndefined
           }
-        `),
-      },
-    ];
+        }
+      `,
+    );
 
-    const output = getOperationPluginOutput({
-      schema,
-      documents,
-      operationType: OperationTypeNode.QUERY,
-      operationName: "Viewer",
-    });
+    expect(output).toContain(
+      "nickname: z.string().nullable().transform((value) => (value === null ? undefined : value))",
+    );
+  });
+
+  it("applies @nullToEmpty on nullable lists", () => {
+    const output = getQueryOutput(
+      /* GraphQL */ `
+        type Query {
+          tags: [String]
+        }
+      `,
+      /* GraphQL */ `
+        query Viewer {
+          tags @nullToEmpty
+        }
+      `,
+    );
+
+    expect(output).toContain(
+      "tags: z.array(z.string().nullable()).nullable().transform((value) => (value === null ? [] : value))",
+    );
+  });
+
+  it("applies @filterNullItems on nullable lists", () => {
+    const output = getQueryOutput(
+      /* GraphQL */ `
+        type Query {
+          tags: [String]
+        }
+      `,
+      /* GraphQL */ `
+        query Viewer {
+          tags @filterNullItems
+        }
+      `,
+    );
+
+    expect(output).toContain(
+      "tags: z.array(z.string().nullable()).nullable().transform((value) => (value == null ? value : value.filter((item): item is NonNullable<typeof item> => item != null)))",
+    );
+  });
+
+  it("applies @nonNull(target: SELF_AND_ITEMS) to one list level", () => {
+    const output = getQueryOutput(
+      /* GraphQL */ `
+        type Query {
+          tags: [String]
+        }
+      `,
+      /* GraphQL */ `
+        query Viewer {
+          tags @nonNull(target: SELF_AND_ITEMS)
+        }
+      `,
+    );
+
+    expect(output).toContain("tags: z.array(z.string())");
+    expect(output).not.toContain("tags: z.array(z.string()).nullable()");
+    expect(output).not.toContain("tags: z.array(z.string().nullable())");
+  });
+
+  it("applies @nullTo on immediate list items", () => {
+    const output = getQueryOutput(
+      /* GraphQL */ `
+        type Query {
+          tags: [String]!
+        }
+      `,
+      /* GraphQL */ `
+        query Viewer {
+          tags @nullTo(value: "Anon", target: ITEMS)
+        }
+      `,
+    );
+
+    expect(output).toContain(
+      'tags: z.array(z.string().nullable().transform((value) => (value === null ? "Anon" : value)))',
+    );
+  });
+
+  it("applies native GraphQL default values on variable definitions", () => {
+    const output = getQueryOutput(
+      /* GraphQL */ `
+        type Query {
+          viewer(name: String): String
+        }
+      `,
+      /* GraphQL */ `
+        query Viewer($name: String = "Unknown") {
+          viewer(name: $name)
+        }
+      `,
+    );
 
     expect(output).toContain('name: z.string().nullish().default("Unknown")');
   });
 
   it("fails hard when @email targets a non-scalar field", () => {
     const schema = buildSchema(/* GraphQL */ `
-      directive @email on FIELD
-
       type Profile {
         id: ID!
       }
@@ -416,11 +333,8 @@ describe("document directives", () => {
     );
   });
 
-  it('fails hard when @required and @coerceNull(to: "undefined") conflict', () => {
+  it("fails hard when @nonNull and @nullToUndefined conflict", () => {
     const schema = buildSchema(/* GraphQL */ `
-      directive @required on FIELD
-      directive @coerceNull(to: String) on FIELD
-
       type User {
         nickname: String
       }
@@ -436,7 +350,7 @@ describe("document directives", () => {
         document: parse(/* GraphQL */ `
           query Viewer {
             viewer {
-              nickname @required @coerceNull(to: "undefined")
+              nickname @nonNull @nullToUndefined
             }
           }
         `),
@@ -451,7 +365,41 @@ describe("document directives", () => {
         operationName: "Viewer",
       }),
     ).toThrowError(
-      "Capability guardrail violation for @coerceNull at transform: missing required capabilities: null:allowed",
+      "Capability guardrail violation for @nullToUndefined at transform: missing required capabilities: null:allowed",
     );
+  });
+
+  it("fails when an item target is used on a non-list field", () => {
+    const schema = buildSchema(/* GraphQL */ `
+      type User {
+        nickname: String
+      }
+
+      type Query {
+        viewer: User!
+      }
+    `);
+
+    const documents: Types.DocumentFile[] = [
+      {
+        location: "operations.graphql",
+        document: parse(/* GraphQL */ `
+          query Viewer {
+            viewer {
+              nickname @nonNull(target: ITEMS)
+            }
+          }
+        `),
+      },
+    ];
+
+    expect(() =>
+      getOperationPluginOutput({
+        schema,
+        documents,
+        operationType: OperationTypeNode.QUERY,
+        operationName: "Viewer",
+      }),
+    ).toThrowError("Directive @nonNull target ITEMS requires a list type");
   });
 });

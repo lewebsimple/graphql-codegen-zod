@@ -1,4 +1,4 @@
-import type { DirectiveRegistry } from "../pipeline/directive-types";
+import type { DirectiveRegistry } from "../pipeline/directive-helpers";
 
 import {
   assertNodeCapabilityInvariants,

@@ -13,6 +13,7 @@ import {
 
 import type { Capability } from "../core/capabilities";
 import type { ZodTypeNode } from "../core/zod-type-node";
+import { splitTargetedDirectives } from "../pipeline/directive-helpers";
 
 /**
  * Resolves a GraphQL type into a renderable resolver node.
@@ -38,8 +39,17 @@ export function resolveTypeNode({
     currentType = currentType.ofType;
   }
 
+  const { selfDirectives, itemDirectives } = splitTargetedDirectives({
+    directives,
+    isListType: isListType(currentType),
+  });
+
   if (isListType(currentType)) {
-    const child = resolveTypeNode({ graphqlType: currentType.ofType, ioType }).node;
+    const child = resolveTypeNode({
+      graphqlType: currentType.ofType,
+      directives: itemDirectives,
+      ioType,
+    }).node;
     const capabilities: Capability[] = [
       "type:list",
       ioCapability,
@@ -51,7 +61,7 @@ export function resolveTypeNode({
         kind: "list",
         graphqlType: currentType,
         children: [child],
-        directives,
+        directives: selfDirectives,
         capabilities: new Set<Capability>(capabilities),
       },
       nullable,
@@ -94,7 +104,7 @@ export function resolveTypeNode({
       kind,
       graphqlType: currentType,
       children: [],
-      directives,
+      directives: selfDirectives,
       capabilities: new Set<Capability>(capabilities),
       name: "name" in namedType ? namedType.name : undefined,
     },

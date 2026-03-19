@@ -1,6 +1,7 @@
 import { extendSchema, parse, type DirectiveLocation, type GraphQLSchema } from "graphql";
 
 import { directiveRegistry } from "./directives/index";
+import { directiveSupportSDL } from "./pipeline/directive-helpers";
 
 /**
  * Builds SDL definitions for all registered directives.
@@ -8,7 +9,7 @@ import { directiveRegistry } from "./directives/index";
  * @returns Concatenated directive SDL.
  */
 export function getZodDirectivesSDL(): string {
-  const directivesSDL: string[] = [];
+  const directivesSDL: string[] = [...directiveSupportSDL];
 
   for (const [directiveName, definition] of Object.entries(directiveRegistry).sort()) {
     const locations = new Set<DirectiveLocation>(definition.locations);
