@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.2
+
+[compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.2.1...v0.2.2)
+
+### 🚀 Enhancements
+
+- @enum directive ([ec6bebf](https://github.com/lewebsimple/graphql-codegen-zod/commit/ec6bebf))
+
 ## v0.2.1
 
 [compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.2.0...v0.2.1)
