@@ -1,6 +1,7 @@
 import type { DirectiveRegistry } from "../pipeline/directive-helpers";
 
 import { emailDirective } from "./email";
+import { enumDirective } from "./enum";
 import { filterNullItemsDirective } from "./filter-null-items";
 import { nonNullDirective } from "./non-null";
 import { nullToDirective } from "./null-to";
@@ -9,6 +10,7 @@ import { nullToUndefinedDirective } from "./null-to-undefined";
 
 /** Shared directive registry consumed by schema extension and rendering. */
 export const directiveRegistry: DirectiveRegistry = {
+  [enumDirective.name]: enumDirective,
   [emailDirective.name]: emailDirective,
   [filterNullItemsDirective.name]: filterNullItemsDirective,
   [nonNullDirective.name]: nonNullDirective,

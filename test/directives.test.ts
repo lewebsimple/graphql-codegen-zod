@@ -148,6 +148,48 @@ describe("document directives", () => {
     expect(output).not.toContain("email: z.string().email()");
   });
 
+  it("applies @enum on output string fields as z.enum(...)", () => {
+    const output = getQueryOutput(
+      /* GraphQL */ `
+        type User {
+          color: String!
+        }
+
+        type Query {
+          viewer: User!
+        }
+      `,
+      /* GraphQL */ `
+        query Viewer {
+          viewer {
+            color @enum(values: ["default", "muted", "inverted"])
+          }
+        }
+      `,
+    );
+
+    expect(output).toContain('color: z.enum(["default", "muted", "inverted"])');
+    expect(output).not.toContain("color: z.string()");
+  });
+
+  it("applies @enum on string variables", () => {
+    const output = getQueryOutput(
+      /* GraphQL */ `
+        type Query {
+          viewer(color: String): String
+        }
+      `,
+      /* GraphQL */ `
+        query Viewer($color: String @enum(values: ["default", "muted", "inverted"])) {
+          viewer(color: $color)
+        }
+      `,
+    );
+
+    expect(output).toContain('color: z.enum(["default", "muted", "inverted"]).nullish()');
+    expect(output).not.toContain("color: z.string()");
+  });
+
   it("applies @nullTo on output fields", () => {
     const output = getQueryOutput(
       /* GraphQL */ `
@@ -331,6 +373,40 @@ describe("document directives", () => {
     ).toThrowError(
       "Capability guardrail violation for @email at transform: missing required capabilities: type:scalar",
     );
+  });
+
+  it("fails when @enum targets a non-string scalar", () => {
+    const schema = buildSchema(/* GraphQL */ `
+      type User {
+        age: Int!
+      }
+
+      type Query {
+        viewer: User!
+      }
+    `);
+
+    const documents: Types.DocumentFile[] = [
+      {
+        location: "operations.graphql",
+        document: parse(/* GraphQL */ `
+          query Viewer {
+            viewer {
+              age @enum(values: ["18", "21"])
+            }
+          }
+        `),
+      },
+    ];
+
+    expect(() =>
+      getOperationPluginOutput({
+        schema,
+        documents,
+        operationType: OperationTypeNode.QUERY,
+        operationName: "Viewer",
+      }),
+    ).toThrowError("Directive @enum can only be applied to String fields or variables");
   });
 
   it("fails hard when @nonNull and @nullToUndefined conflict", () => {

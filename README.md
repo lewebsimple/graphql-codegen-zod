@@ -49,6 +49,7 @@ generation fail deterministically when incompatible directives are composed.
 
 Supported directives:
 
+- `@enum(values: [String!]!)` on string scalar fields or variables: emits `z.enum([...])`.
 - `@email` on scalar fields or variables: emits `z.email()`.
 - `@nonNull(target: SELF | ITEMS | SELF_AND_ITEMS)` on nullable fields or variables: removes `.nullable()` from the current value, the immediate list item type, or both.
 - `@nullTo(value: ZodValue!, target: SELF | ITEMS)` on nullable scalar fields or variables: accepts `null` and transforms it to the provided literal fallback.
