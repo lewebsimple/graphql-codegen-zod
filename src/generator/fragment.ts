@@ -6,7 +6,7 @@ import type { DepIdentifier } from "../core/deps";
 import { resolveSelection } from "../resolver/resolve-selection";
 
 import { getImports } from "./deps";
-import { getFragmentDefinition } from "./documents";
+import { getFragmentDefinition, getFragmentTypeConditionMap } from "./documents";
 import { renderNodeToSchema } from "./render-node";
 
 /** Options for fragment module generation. */
@@ -45,6 +45,7 @@ export function getFragmentPluginOutput({
     schema,
     selectionSet: fragmentDef.selectionSet,
     parentType: parent,
+    fragmentTypeConditions: getFragmentTypeConditionMap(documents),
   });
 
   const deps = new Set<DepIdentifier>();

@@ -176,16 +176,27 @@ function renderOutputObject(
   deps: Set<DepIdentifier>,
 ): string {
   const fields: string[] = [];
-  const merges: string[] = [];
+  const conditionalMerges: string[] = [];
+  const unconditionalMerges: string[] = [];
 
   for (const child of node.children) {
     if (child.kind === "named-fragment") {
-      merges.push(renderNode({ node: child, schema, deps, allowOptional: false }));
+      const mergeSchema = renderNode({ node: child, schema, deps, allowOptional: false });
+      if (child.conditional) {
+        conditionalMerges.push(mergeSchema);
+      } else {
+        unconditionalMerges.push(mergeSchema);
+      }
       continue;
     }
 
     if (child.kind === "inline-fragment") {
-      merges.push(renderNode({ node: child, schema, deps, allowOptional: false }));
+      const mergeSchema = renderNode({ node: child, schema, deps, allowOptional: false });
+      if (child.conditional) {
+        conditionalMerges.push(mergeSchema);
+      } else {
+        unconditionalMerges.push(mergeSchema);
+      }
       continue;
     }
 
@@ -197,13 +208,26 @@ function renderOutputObject(
     fields.push(`${child.name}: ${fieldSchema}`);
   }
 
-  let baseSchema = `z.object({ ${fields.join(", ")} })`;
-  if (fields.length === 0 && merges.length === 1) {
-    return merges[0];
+  if (fields.length === 0 && conditionalMerges.length === 0 && unconditionalMerges.length === 1) {
+    return unconditionalMerges[0];
   }
 
-  for (const mergeSchema of merges) {
+  if (fields.length > 0 && conditionalMerges.length === 0 && unconditionalMerges.length === 0) {
+    return `z.object({ ${fields.join(", ")} })`;
+  }
+
+  let baseSchema = "z.object({})";
+
+  for (const mergeSchema of conditionalMerges) {
+    baseSchema += `.extend(((${mergeSchema}).partial()).shape)`;
+  }
+
+  for (const mergeSchema of unconditionalMerges) {
     baseSchema += `.extend((${mergeSchema}).shape)`;
+  }
+
+  if (fields.length > 0) {
+    baseSchema += `.extend((z.object({ ${fields.join(", ")} })).shape)`;
   }
 
   return baseSchema;

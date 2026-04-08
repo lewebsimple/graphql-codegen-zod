@@ -26,6 +26,8 @@ export type ZodTypeNode = {
   capabilities: Set<Capability>;
   /** Field, type, or fragment name associated with the node. */
   name?: string;
+  /** Whether this node is only selected conditionally through a fragment spread. */
+  conditional?: boolean;
   /** Default value attached to an input node. */
   defaultValue?: unknown;
 };

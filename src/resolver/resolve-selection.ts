@@ -4,7 +4,7 @@ import type {
   GraphQLSchema,
   SelectionSetNode,
 } from "graphql";
-import { isInterfaceType, isObjectType, isUnionType } from "graphql";
+import { isInterfaceType, isObjectType, isTypeSubTypeOf, isUnionType } from "graphql";
 
 import type { Capability } from "../core/capabilities";
 import type { ZodTypeNode } from "../core/zod-type-node";
@@ -21,10 +21,12 @@ export function resolveSelection({
   schema,
   selectionSet,
   parentType,
+  fragmentTypeConditions = new Map<string, string>(),
 }: {
   schema: GraphQLSchema;
   selectionSet: SelectionSetNode;
   parentType: GraphQLObjectType | GraphQLInterfaceType;
+  fragmentTypeConditions?: ReadonlyMap<string, string>;
 }): ZodTypeNode {
   const children: ZodTypeNode[] = [];
 
@@ -73,6 +75,7 @@ export function resolveSelection({
                 schema,
                 selectionSet: selection.selectionSet,
                 parentType: named,
+                fragmentTypeConditions,
               }).children,
             );
           }
@@ -87,6 +90,7 @@ export function resolveSelection({
                   schema,
                   selectionSet: selection.selectionSet,
                   parentType: possibleType,
+                  fragmentTypeConditions,
                 }),
               );
             }
@@ -99,9 +103,21 @@ export function resolveSelection({
     }
 
     if (selection.kind === "FragmentSpread") {
+      const typeCondition = fragmentTypeConditions.get(selection.name.value);
+      if (!typeCondition) {
+        throw new Error(`Fragment ${selection.name.value} type condition not found`);
+      }
+
+      const fragmentType = schema.getType(typeCondition);
+      if (!fragmentType || (!isObjectType(fragmentType) && !isInterfaceType(fragmentType))) {
+        throw new Error(
+          `Fragment ${selection.name.value} references unsupported type: ${typeCondition}`,
+        );
+      }
+
       children.push({
         kind: "named-fragment",
-        graphqlType: parentType,
+        graphqlType: fragmentType,
         children: [],
         directives: [],
         capabilities: new Set<Capability>([
@@ -111,6 +127,7 @@ export function resolveSelection({
           "null:rejected",
         ]),
         name: selection.name.value,
+        conditional: !isTypeSubTypeOf(schema, parentType, fragmentType),
       });
       continue;
     }
@@ -128,6 +145,7 @@ export function resolveSelection({
         schema,
         selectionSet: selection.selectionSet,
         parentType: parent,
+        fragmentTypeConditions,
       }).children,
       directives: selection.directives ?? [],
       capabilities: new Set<Capability>([
@@ -137,6 +155,7 @@ export function resolveSelection({
         "null:rejected",
       ]),
       name: typeCondition,
+      conditional: typeCondition ? !isTypeSubTypeOf(schema, parentType, parent) : false,
     });
   }
 

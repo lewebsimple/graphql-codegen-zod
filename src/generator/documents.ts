@@ -90,6 +90,23 @@ export function getFragmentDefinition(
 }
 
 /**
+ * Collects fragment type conditions keyed by fragment name.
+ *
+ * @param documents Parsed GraphQL documents.
+ * @returns Stable fragment type-condition lookup.
+ */
+export function getFragmentTypeConditionMap(
+  documents: Types.DocumentFile[],
+): ReadonlyMap<string, string> {
+  return new Map(
+    getFragmentDefinitions(documents).map((fragmentDef) => [
+      fragmentDef.name.value,
+      fragmentDef.typeCondition.name.value,
+    ]),
+  );
+}
+
+/**
  * Collects unique named operation definitions from parsed documents.
 
  * @param documents Parsed GraphQL documents.
