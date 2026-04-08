@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.4
+
+[compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.2.3...v0.2.4)
+
+### 🚀 Enhancements
+
+- Add @decodeHTML directive for decoding HTML entities in string fields and variables ([59667ea](https://github.com/lewebsimple/graphql-codegen-zod/commit/59667ea))
+
 ## v0.2.3
 
 [compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.2.2...v0.2.3)
