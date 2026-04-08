@@ -3,7 +3,7 @@ export type DepIdentifier = {
   /** Symbol or artifact name. */
   name: string;
   /** Dependency category used for import generation. */
-  kind: "document" | "enum" | "fragment" | "query" | "mutation" | "subscription";
+  kind: "document" | "enum" | "fragment" | "query" | "mutation" | "subscription" | "runtime";
 };
 
 /**

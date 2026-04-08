@@ -94,5 +94,8 @@ function getRegistryEntry({ name, kind }: DepIdentifier): string {
         `    variablesSchema: ${getDepSchemaIdentifier({ name, kind, target: "variables" })},`,
         "  },",
       ].join("\n");
+
+    case "runtime":
+      throw new Error("Runtime imports are not valid registry entries.");
   }
 }

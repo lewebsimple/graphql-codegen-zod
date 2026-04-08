@@ -226,6 +226,36 @@ describe("generator outputs", () => {
     expect(output).not.toContain("films: z.array(z.object({  }).nullable()).nullable()");
   });
 
+  it("decodes HTML entities for string selections when @decodeHTML is used", () => {
+    const schema = buildSchema(/* GraphQL */ `
+      type Query {
+        headline: String!
+      }
+    `);
+
+    const documents: Types.DocumentFile[] = [
+      {
+        location: "operations.graphql",
+        document: parse(/* GraphQL */ `
+          query Headline {
+            headline @decodeHTML
+          }
+        `),
+      },
+    ];
+
+    const resultSchema = evaluateSchema(
+      renderQueryResultSchemaExpression({ schema, documents, operationName: "Headline" }),
+      {
+        decodeHTML: (value: string) => value.replaceAll("&amp;", "&"),
+      },
+    );
+
+    expect(resultSchema.parse({ headline: "Fish &amp; Chips" })).toEqual({
+      headline: "Fish & Chips",
+    });
+  });
+
   it("accepts omitted fields from conditional inline fragments", () => {
     const schema = buildSchema(/* GraphQL */ `
       interface Node {

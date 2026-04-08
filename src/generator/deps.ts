@@ -88,6 +88,17 @@ export function getImports({
           ].join("\n"),
         );
         break;
+
+      case "runtime":
+        switch (name) {
+          case "decodeHTML":
+            imports.push('import { decodeHTML } from "entities";');
+            break;
+
+          default:
+            throw new Error(`Unsupported runtime dependency import: ${name}`);
+        }
+        break;
     }
   }
 

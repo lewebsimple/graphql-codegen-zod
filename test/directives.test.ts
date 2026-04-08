@@ -79,10 +79,14 @@ describe("document directives", () => {
 
     const extended = extendSchemaWithZodDirectives(schema);
     const nonNullDirective = extended.getDirective("nonNull");
+    const decodeHTMLDirective = extended.getDirective("decodeHTML");
 
     expect(nonNullDirective).toBeDefined();
     expect(nonNullDirective?.locations).toContain("FIELD");
     expect(nonNullDirective?.locations).toContain("VARIABLE_DEFINITION");
+    expect(decodeHTMLDirective).toBeDefined();
+    expect(decodeHTMLDirective?.locations).toContain("FIELD");
+    expect(decodeHTMLDirective?.locations).toContain("VARIABLE_DEFINITION");
     expect(extended.getType("ZodDirectiveTarget")).toBeDefined();
     expect(extended.getType("ZodValue")).toBeDefined();
   });
@@ -188,6 +192,76 @@ describe("document directives", () => {
 
     expect(output).toContain('color: z.enum(["default", "muted", "inverted"]).nullish()');
     expect(output).not.toContain("color: z.string()");
+  });
+
+  it("applies @decodeHTML on output string fields", () => {
+    const output = getQueryOutput(
+      /* GraphQL */ `
+        type User {
+          bio: String
+        }
+
+        type Query {
+          viewer: User!
+        }
+      `,
+      /* GraphQL */ `
+        query Viewer {
+          viewer {
+            bio @decodeHTML
+          }
+        }
+      `,
+    );
+
+    expect(output).toContain('import { decodeHTML } from "entities";');
+    expect(output).toContain(
+      "bio: z.string().nullable().transform((value) => (value == null ? value : decodeHTML(value)))",
+    );
+  });
+
+  it("imports decodeHTML once when multiple fields use @decodeHTML", () => {
+    const output = getQueryOutput(
+      /* GraphQL */ `
+        type User {
+          bio: String
+          nickname: String
+        }
+
+        type Query {
+          viewer: User!
+        }
+      `,
+      /* GraphQL */ `
+        query Viewer {
+          viewer {
+            bio @decodeHTML
+            nickname @decodeHTML
+          }
+        }
+      `,
+    );
+
+    expect(output.match(/import \{ decodeHTML \} from "entities";/g)).toHaveLength(1);
+  });
+
+  it("applies @decodeHTML on string variables", () => {
+    const output = getQueryOutput(
+      /* GraphQL */ `
+        type Query {
+          viewer(search: String): String
+        }
+      `,
+      /* GraphQL */ `
+        query Viewer($search: String @decodeHTML) {
+          viewer(search: $search)
+        }
+      `,
+    );
+
+    expect(output).toContain(
+      "search: z.string().nullish().transform((value) => (value == null ? value : decodeHTML(value)))",
+    );
   });
 
   it("applies @nullTo on output fields", () => {
@@ -407,6 +481,40 @@ describe("document directives", () => {
         operationName: "Viewer",
       }),
     ).toThrowError("Directive @enum can only be applied to String fields or variables");
+  });
+
+  it("fails when @decodeHTML targets a non-string scalar", () => {
+    const schema = buildSchema(/* GraphQL */ `
+      type User {
+        age: Int!
+      }
+
+      type Query {
+        viewer: User!
+      }
+    `);
+
+    const documents: Types.DocumentFile[] = [
+      {
+        location: "operations.graphql",
+        document: parse(/* GraphQL */ `
+          query Viewer {
+            viewer {
+              age @decodeHTML
+            }
+          }
+        `),
+      },
+    ];
+
+    expect(() =>
+      getOperationPluginOutput({
+        schema,
+        documents,
+        operationType: OperationTypeNode.QUERY,
+        operationName: "Viewer",
+      }),
+    ).toThrowError("Directive @decodeHTML can only be applied to String fields or variables");
   });
 
   it("fails hard when @nonNull and @nullToUndefined conflict", () => {

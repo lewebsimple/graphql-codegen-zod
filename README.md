@@ -9,6 +9,12 @@ pnpm add -D @lewebsimple/graphql-codegen-zod
 pnpm add graphql zod
 ```
 
+If you use `@decodeHTML`, also install `entities` in the project that consumes the generated code:
+
+```bash
+pnpm add entities
+```
+
 ## Usage
 
 `codegen.yml`
@@ -51,6 +57,7 @@ Supported directives:
 
 - `@enum(values: [String!]!)` on string scalar fields or variables: emits `z.enum([...])`.
 - `@email` on scalar fields or variables: emits `z.email()`.
+- `@decodeHTML` on string scalar fields or variables: emits a transform that decodes HTML entities via `entities`.
 - `@nonNull(target: SELF | ITEMS | SELF_AND_ITEMS)` on nullable fields or variables: removes `.nullable()` from the current value, the immediate list item type, or both.
 - `@nullTo(value: ZodValue!, target: SELF | ITEMS)` on nullable scalar fields or variables: accepts `null` and transforms it to the provided literal fallback.
 - `@nullToUndefined` on nullable fields or variables: accepts `null` and transforms it to `undefined`.
