@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.3
+
+[compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.2.2...v0.2.3)
+
+### 🚀 Enhancements
+
+- Add support for conditional fragments and improve fragment type condition handling ([8f2c555](https://github.com/lewebsimple/graphql-codegen-zod/commit/8f2c555))
+
 ## v0.2.2
 
 [compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.2.1...v0.2.2)
