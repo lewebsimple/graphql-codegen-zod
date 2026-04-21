@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.5
+
+[compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.2.4...v0.2.5)
+
+### 🩹 Fixes
+
+- Prevent duplicate deps identifiers ([93e5d59](https://github.com/lewebsimple/graphql-codegen-zod/commit/93e5d59))
+
 ## v0.2.4
 
 [compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.2.3...v0.2.4)
