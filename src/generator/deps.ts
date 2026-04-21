@@ -1,6 +1,6 @@
 import { capitalize } from "es-toolkit/string";
 
-import type { DepIdentifier } from "../core/deps";
+import { getDepKey, type DepIdentifier } from "../core/deps";
 
 /** Schema symbol name variants used in generated imports. */
 export type DepSchemaIdentifier =
@@ -116,7 +116,20 @@ export function getImports({
  * @returns Sorted dependency array.
  */
 function sortDeps(deps: Set<DepIdentifier>): DepIdentifier[] {
-  return [...deps].sort((a, b) => {
+  const uniqueDeps: DepIdentifier[] = [];
+  const seen = new Set<string>();
+
+  for (const dep of deps) {
+    const key = getDepKey(dep);
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    uniqueDeps.push(dep);
+  }
+
+  return uniqueDeps.sort((a, b) => {
     if (a.kind === b.kind) {
       return a.name.localeCompare(b.name);
     }

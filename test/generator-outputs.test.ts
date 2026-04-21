@@ -226,6 +226,72 @@ describe("generator outputs", () => {
     expect(output).not.toContain("films: z.array(z.object({  }).nullable()).nullable()");
   });
 
+  it("emits each fragment import only once when the same fragment is reused", () => {
+    const schema = buildSchema(/* GraphQL */ `
+      type AcfLink {
+        label: String
+      }
+
+      type Links {
+        contact: AcfLink
+        memberArea: AcfLink
+        memberSignup: AcfLink
+        privacyPolicy: AcfLink
+      }
+
+      type SiteOptions {
+        links: Links
+      }
+
+      type Query {
+        siteOptions: SiteOptions
+      }
+    `);
+
+    const documents: Types.DocumentFile[] = [
+      {
+        location: "operations.graphql",
+        document: parse(/* GraphQL */ `
+          fragment AcfLink on AcfLink {
+            label
+          }
+
+          query GetSiteOptions {
+            siteOptions {
+              links {
+                contact {
+                  ...AcfLink
+                }
+                memberArea {
+                  ...AcfLink
+                }
+                memberSignup {
+                  ...AcfLink
+                }
+                privacyPolicy {
+                  ...AcfLink
+                }
+              }
+            }
+          }
+        `),
+      },
+    ];
+
+    const output = getOperationPluginOutput({
+      schema,
+      documents,
+      operationType: OperationTypeNode.QUERY,
+      operationName: "GetSiteOptions",
+    });
+
+    expect(
+      output.match(
+        /import \{ fragmentSchema as zodAcfLinkFragmentSchema \} from "\.\.\/fragments\/AcfLink";/g,
+      ),
+    ).toHaveLength(1);
+  });
+
   it("decodes HTML entities for string selections when @decodeHTML is used", () => {
     const schema = buildSchema(/* GraphQL */ `
       type Query {
