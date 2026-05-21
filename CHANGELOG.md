@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.6
+
+[compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.2.5...v0.2.6)
+
+### 🩹 Fixes
+
+- Inline unconditional spreads (named + inline) and merge sibling children by response key ([427519a](https://github.com/lewebsimple/graphql-codegen-zod/commit/427519a))
+
 ## v0.2.5
 
 [compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.2.4...v0.2.5)
