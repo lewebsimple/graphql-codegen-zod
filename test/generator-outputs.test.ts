@@ -7,7 +7,7 @@ import * as z from "zod";
 import { getDepSchemaIdentifier } from "../src/generator/deps";
 import {
   getFragmentDefinition,
-  getFragmentTypeConditionMap,
+  getFragmentDefinitionMap,
   getOperationDefinition,
 } from "../src/generator/documents";
 import { getEnumPluginOutput } from "../src/generator/enum";
@@ -47,7 +47,7 @@ function renderQueryResultSchemaExpression({
       schema,
       selectionSet: operationDef.selectionSet,
       parentType,
-      fragmentTypeConditions: getFragmentTypeConditionMap(documents),
+      fragments: getFragmentDefinitionMap(documents),
     }),
     schema,
     deps: new Set(),
@@ -78,7 +78,7 @@ function renderFragmentSchemaExpression({
       schema,
       selectionSet: fragmentDef.selectionSet,
       parentType,
-      fragmentTypeConditions: getFragmentTypeConditionMap(documents),
+      fragments: getFragmentDefinitionMap(documents),
     }),
     schema,
     deps: new Set(),
@@ -516,5 +516,326 @@ describe("generator outputs", () => {
     );
 
     expect(resultSchema.safeParse({ node: { id: "1" } }).success).toBe(true);
+  });
+
+  it("merges nested sub-selections from two unconditional named fragments", () => {
+    const schema = buildSchema(/* GraphQL */ `
+      type Connection {
+        nodes: [String]
+        itemCount: Int
+      }
+
+      type Cart {
+        contents: Connection
+      }
+
+      type Query {
+        cart: Cart
+      }
+    `);
+
+    const documents: Types.DocumentFile[] = [
+      {
+        location: "operations.graphql",
+        document: parse(/* GraphQL */ `
+          fragment CartContents on Cart {
+            contents {
+              nodes
+            }
+          }
+
+          fragment CartNavIcon on Cart {
+            contents {
+              itemCount
+            }
+          }
+
+          query GetCart {
+            cart {
+              ...CartContents
+              ...CartNavIcon
+            }
+          }
+        `),
+      },
+    ];
+
+    const resultSchema = evaluateSchema(
+      renderQueryResultSchemaExpression({ schema, documents, operationName: "GetCart" }),
+    );
+
+    const parsed = resultSchema.parse({
+      cart: { contents: { nodes: ["a", "b"], itemCount: 2 } },
+    });
+
+    expect(parsed).toEqual({ cart: { contents: { nodes: ["a", "b"], itemCount: 2 } } });
+  });
+
+  it("merges nested sub-selections from two unconditional inline fragments", () => {
+    const schema = buildSchema(/* GraphQL */ `
+      type Connection {
+        nodes: [String]
+        itemCount: Int
+      }
+
+      type Cart {
+        contents: Connection
+      }
+
+      type Query {
+        cart: Cart
+      }
+    `);
+
+    const documents: Types.DocumentFile[] = [
+      {
+        location: "operations.graphql",
+        document: parse(/* GraphQL */ `
+          query GetCart {
+            cart {
+              ... on Cart {
+                contents {
+                  nodes
+                }
+              }
+              ... on Cart {
+                contents {
+                  itemCount
+                }
+              }
+            }
+          }
+        `),
+      },
+    ];
+
+    const resultSchema = evaluateSchema(
+      renderQueryResultSchemaExpression({ schema, documents, operationName: "GetCart" }),
+    );
+
+    expect(resultSchema.parse({ cart: { contents: { nodes: ["x"], itemCount: 1 } } })).toEqual({
+      cart: { contents: { nodes: ["x"], itemCount: 1 } },
+    });
+  });
+
+  it("preserves both sub-selections through nullable wrappers", () => {
+    const schema = buildSchema(/* GraphQL */ `
+      type Connection {
+        nodes: [String]
+        itemCount: Int
+      }
+
+      type Cart {
+        contents: Connection
+      }
+
+      type Query {
+        cart: Cart
+      }
+    `);
+
+    const documents: Types.DocumentFile[] = [
+      {
+        location: "operations.graphql",
+        document: parse(/* GraphQL */ `
+          fragment A on Cart {
+            contents {
+              nodes
+            }
+          }
+
+          fragment B on Cart {
+            contents {
+              itemCount
+            }
+          }
+
+          query GetCart {
+            cart {
+              ...A
+              ...B
+            }
+          }
+        `),
+      },
+    ];
+
+    const resultSchema = evaluateSchema(
+      renderQueryResultSchemaExpression({ schema, documents, operationName: "GetCart" }),
+    );
+
+    // contents is nullable; both branches still survive when present.
+    expect(resultSchema.safeParse({ cart: { contents: null } }).success).toBe(true);
+    expect(resultSchema.parse({ cart: { contents: { nodes: ["only"], itemCount: 1 } } })).toEqual({
+      cart: { contents: { nodes: ["only"], itemCount: 1 } },
+    });
+  });
+
+  it("merges sub-selections through a list wrapper", () => {
+    const schema = buildSchema(/* GraphQL */ `
+      type Film {
+        title: String
+        director: String
+      }
+
+      type Catalog {
+        films: [Film]
+      }
+
+      type Query {
+        catalog: Catalog
+      }
+    `);
+
+    const documents: Types.DocumentFile[] = [
+      {
+        location: "operations.graphql",
+        document: parse(/* GraphQL */ `
+          fragment Titles on Catalog {
+            films {
+              title
+            }
+          }
+
+          fragment Directors on Catalog {
+            films {
+              director
+            }
+          }
+
+          query GetCatalog {
+            catalog {
+              ...Titles
+              ...Directors
+            }
+          }
+        `),
+      },
+    ];
+
+    const resultSchema = evaluateSchema(
+      renderQueryResultSchemaExpression({ schema, documents, operationName: "GetCatalog" }),
+    );
+
+    expect(
+      resultSchema.parse({
+        catalog: { films: [{ title: "Solaris", director: "Tarkovsky" }] },
+      }),
+    ).toEqual({ catalog: { films: [{ title: "Solaris", director: "Tarkovsky" }] } });
+  });
+
+  it("merges three-way overlap on the same nested field", () => {
+    const schema = buildSchema(/* GraphQL */ `
+      type Connection {
+        nodes: [String]
+        itemCount: Int
+        pageCursor: String
+      }
+
+      type Cart {
+        contents: Connection
+      }
+
+      type Query {
+        cart: Cart
+      }
+    `);
+
+    const documents: Types.DocumentFile[] = [
+      {
+        location: "operations.graphql",
+        document: parse(/* GraphQL */ `
+          fragment A on Cart {
+            contents {
+              nodes
+            }
+          }
+
+          fragment B on Cart {
+            contents {
+              itemCount
+            }
+          }
+
+          fragment C on Cart {
+            contents {
+              pageCursor
+            }
+          }
+
+          query GetCart {
+            cart {
+              ...A
+              ...B
+              ...C
+            }
+          }
+        `),
+      },
+    ];
+
+    const resultSchema = evaluateSchema(
+      renderQueryResultSchemaExpression({ schema, documents, operationName: "GetCart" }),
+    );
+
+    expect(
+      resultSchema.parse({
+        cart: { contents: { nodes: ["a"], itemCount: 1, pageCursor: "c1" } },
+      }),
+    ).toEqual({ cart: { contents: { nodes: ["a"], itemCount: 1, pageCursor: "c1" } } });
+  });
+
+  it("merges fragment spreads composed transitively within a parent fragment", () => {
+    const schema = buildSchema(/* GraphQL */ `
+      type Connection {
+        nodes: [String]
+        itemCount: Int
+      }
+
+      type Cart {
+        contents: Connection
+        isEmpty: Boolean
+      }
+
+      type Query {
+        cart: Cart
+      }
+    `);
+
+    const documents: Types.DocumentFile[] = [
+      {
+        location: "operations.graphql",
+        document: parse(/* GraphQL */ `
+          fragment Leaf1 on Cart {
+            contents {
+              nodes
+            }
+          }
+
+          fragment Leaf2 on Cart {
+            contents {
+              itemCount
+            }
+          }
+
+          fragment Composite on Cart {
+            isEmpty
+            ...Leaf1
+            ...Leaf2
+          }
+        `),
+      },
+    ];
+
+    const compositeSchema = evaluateSchema(
+      renderFragmentSchemaExpression({ schema, documents, fragmentName: "Composite" }),
+    );
+
+    expect(
+      compositeSchema.parse({
+        isEmpty: false,
+        contents: { nodes: ["x"], itemCount: 1 },
+      }),
+    ).toEqual({ isEmpty: false, contents: { nodes: ["x"], itemCount: 1 } });
   });
 });

@@ -6,7 +6,7 @@ import { resolveSelection } from "../resolver/resolve-selection";
 import { resolveVariables } from "../resolver/resolve-variables";
 
 import { getImports } from "./deps";
-import { getFragmentTypeConditionMap, getOperationDefinition } from "./documents";
+import { getFragmentDefinitionMap, getOperationDefinition } from "./documents";
 import { renderNodeToSchema } from "./render-node";
 
 /** Options for operation module generation. */
@@ -58,14 +58,14 @@ export function getOperationPluginOutput({
   }
 
   const deps = new Set<DepIdentifier>();
-  const fragmentTypeConditions = getFragmentTypeConditionMap(documents);
+  const fragments = getFragmentDefinitionMap(documents);
 
   const zodResult = renderNodeToSchema({
     node: resolveSelection({
       schema,
       selectionSet: operationDef.selectionSet,
       parentType,
-      fragmentTypeConditions,
+      fragments,
     }),
     schema,
     deps,
