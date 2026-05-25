@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.3.3
+
+[compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.3.2...v0.3.3)
+
+### 🚀 Enhancements
+
+- Add lean documents-only emitter for optimized output ([1dc87cf](https://github.com/lewebsimple/graphql-codegen-zod/commit/1dc87cf))
+
 ## v0.3.2
 
 [compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.3.1...v0.3.2)
