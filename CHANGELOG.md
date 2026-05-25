@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.3.1
+
+[compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.3.0...v0.3.1)
+
+### 🩹 Fixes
+
+- Set onlyOperationTypes to slim down documents size ([8172b2f](https://github.com/lewebsimple/graphql-codegen-zod/commit/8172b2f))
+
 ## v0.3.0
 
 [compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.2.6...v0.3.0)
