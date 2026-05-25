@@ -23,6 +23,9 @@ importers:
       '@graphql-codegen/typescript-operations':
         specifier: ^5.1.0
         version: 5.1.0(graphql@16.13.2)
+      '@graphql-codegen/visitor-plugin-common':
+        specifier: ^6.3.0
+        version: 6.3.0(graphql@16.13.2)
       es-toolkit:
         specifier: ^1.45.1
         version: 1.45.1

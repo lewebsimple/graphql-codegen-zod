@@ -51,6 +51,7 @@
     "@graphql-codegen/typed-document-node": "^6.1.8",
     "@graphql-codegen/typescript": "^5.0.10",
     "@graphql-codegen/typescript-operations": "^5.1.0",
+    "@graphql-codegen/visitor-plugin-common": "^6.3.0",
     "es-toolkit": "^1.45.1"
   },
   "devDependencies": {

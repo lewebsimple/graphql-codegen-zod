@@ -8,6 +8,7 @@ import * as typescriptPlugin from "@graphql-codegen/typescript";
 import type { TypeScriptPluginConfig } from "@graphql-codegen/typescript";
 import * as typescriptOperationsPlugin from "@graphql-codegen/typescript-operations";
 import type { TypeScriptDocumentsPluginConfig } from "@graphql-codegen/typescript-operations";
+import { DocumentMode } from "@graphql-codegen/visitor-plugin-common";
 import { buildASTSchema } from "graphql";
 
 import {
@@ -71,7 +72,11 @@ export const preset: Types.OutputPreset = {
       ...section("documents.ts", [
         { typescript: {} satisfies TypeScriptPluginConfig },
         { typescriptOperations: {} satisfies TypeScriptDocumentsPluginConfig },
-        { typedDocumentNode: {} satisfies TypeScriptTypedDocumentNodesConfig },
+        {
+          typedDocumentNode: {
+            documentMode: DocumentMode.string,
+          } satisfies TypeScriptTypedDocumentNodesConfig,
+        },
       ]),
       documents: stripDirectivesFromDocuments(baseConfig.documents),
     });

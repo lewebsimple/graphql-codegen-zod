@@ -1,4 +1,4 @@
-import type { TypedDocumentNode as DocumentNode } from "@graphql-typed-document-node/core";
+import type { DocumentTypeDecoration } from "@graphql-typed-document-node/core";
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -65,122 +65,44 @@ export type GqlGetUserQuery = {
   };
 };
 
-export const ViewerFragmentDoc = {
-  kind: "Document",
-  definitions: [
-    {
-      kind: "FragmentDefinition",
-      name: { kind: "Name", value: "Viewer" },
-      typeCondition: { kind: "NamedType", name: { kind: "Name", value: "User" } },
-      selectionSet: {
-        kind: "SelectionSet",
-        selections: [
-          { kind: "Field", name: { kind: "Name", value: "id" } },
-          {
-            kind: "Field",
-            name: { kind: "Name", value: "email" },
-            directives: [{ kind: "Directive", name: { kind: "Name", value: "email" } }],
-          },
-          { kind: "Field", name: { kind: "Name", value: "role" } },
-          {
-            kind: "Field",
-            name: { kind: "Name", value: "name" },
-            directives: [
-              {
-                kind: "Directive",
-                name: { kind: "Name", value: "coerceNull" },
-                arguments: [
-                  {
-                    kind: "Argument",
-                    name: { kind: "Name", value: "value" },
-                    value: { kind: "StringValue", value: "Unknown", block: false },
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-    },
-  ],
-} as unknown as DocumentNode<GqlViewerFragment, unknown>;
-export const GetUserDocument = {
-  kind: "Document",
-  definitions: [
-    {
-      kind: "OperationDefinition",
-      operation: "query",
-      name: { kind: "Name", value: "GetUser" },
-      variableDefinitions: [
-        {
-          kind: "VariableDefinition",
-          variable: { kind: "Variable", name: { kind: "Name", value: "id" } },
-          type: {
-            kind: "NonNullType",
-            type: { kind: "NamedType", name: { kind: "Name", value: "ID" } },
-          },
-        },
-        {
-          kind: "VariableDefinition",
-          variable: { kind: "Variable", name: { kind: "Name", value: "email" } },
-          type: { kind: "NamedType", name: { kind: "Name", value: "String" } },
-          directives: [{ kind: "Directive", name: { kind: "Name", value: "email" } }],
-        },
-      ],
-      selectionSet: {
-        kind: "SelectionSet",
-        selections: [
-          {
-            kind: "Field",
-            name: { kind: "Name", value: "getUser" },
-            arguments: [
-              {
-                kind: "Argument",
-                name: { kind: "Name", value: "id" },
-                value: { kind: "Variable", name: { kind: "Name", value: "id" } },
-              },
-            ],
-            selectionSet: {
-              kind: "SelectionSet",
-              selections: [{ kind: "FragmentSpread", name: { kind: "Name", value: "Viewer" } }],
-            },
-          },
-        ],
-      },
-    },
-    {
-      kind: "FragmentDefinition",
-      name: { kind: "Name", value: "Viewer" },
-      typeCondition: { kind: "NamedType", name: { kind: "Name", value: "User" } },
-      selectionSet: {
-        kind: "SelectionSet",
-        selections: [
-          { kind: "Field", name: { kind: "Name", value: "id" } },
-          {
-            kind: "Field",
-            name: { kind: "Name", value: "email" },
-            directives: [{ kind: "Directive", name: { kind: "Name", value: "email" } }],
-          },
-          { kind: "Field", name: { kind: "Name", value: "role" } },
-          {
-            kind: "Field",
-            name: { kind: "Name", value: "name" },
-            directives: [
-              {
-                kind: "Directive",
-                name: { kind: "Name", value: "coerceNull" },
-                arguments: [
-                  {
-                    kind: "Argument",
-                    name: { kind: "Name", value: "value" },
-                    value: { kind: "StringValue", value: "Unknown", block: false },
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-    },
-  ],
-} as unknown as DocumentNode<GqlGetUserQuery, GqlGetUserQueryVariables>;
+export class TypedDocumentString<TResult, TVariables>
+  extends String
+  implements DocumentTypeDecoration<TResult, TVariables>
+{
+  __apiType?: NonNullable<DocumentTypeDecoration<TResult, TVariables>["__apiType"]>;
+  private value: string;
+  public __meta__?: Record<string, any> | undefined;
+
+  constructor(value: string, __meta__?: Record<string, any> | undefined) {
+    super(value);
+    this.value = value;
+    this.__meta__ = __meta__;
+  }
+
+  override toString(): string & DocumentTypeDecoration<TResult, TVariables> {
+    return this.value;
+  }
+}
+export const ViewerFragmentDoc = new TypedDocumentString(
+  `
+    fragment Viewer on User {
+  id
+  email
+  role
+  name @coerceNull(value: "Unknown")
+}
+    `,
+  { fragmentName: "Viewer" },
+) as unknown as TypedDocumentString<GqlViewerFragment, unknown>;
+export const GetUserDocument = new TypedDocumentString(`
+    query GetUser($id: ID!, $email: String) {
+  getUser(id: $id) {
+    ...Viewer
+  }
+}
+    fragment Viewer on User {
+  id
+  email
+  role
+  name @coerceNull(value: "Unknown")
+}`) as unknown as TypedDocumentString<GqlGetUserQuery, GqlGetUserQueryVariables>;
