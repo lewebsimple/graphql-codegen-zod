@@ -19,23 +19,6 @@ export type Scalars = {
   Float: { input: number; output: number };
 };
 
-export type GqlQuery = {
-  __typename?: "Query";
-  getUser: GqlUser;
-};
-
-export type GqlQueryGetUserArgs = {
-  id: Scalars["ID"]["input"];
-};
-
-export type GqlUser = {
-  __typename?: "User";
-  email: Scalars["String"]["output"];
-  id: Scalars["ID"]["output"];
-  name: Maybe<Scalars["String"]["output"]>;
-  role: GqlUserRole;
-};
-
 export enum GqlUserRole {
   Admin = "ADMIN",
   User = "USER",
