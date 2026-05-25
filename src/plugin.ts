@@ -1,6 +1,7 @@
 import type { PluginFunction } from "@graphql-codegen/plugin-helpers";
 import type { OperationTypeNode } from "graphql";
 
+import { getDocumentsPluginOutput } from "./generator/documents-emit";
 import { getEnumPluginOutput } from "./generator/enum";
 import { getFragmentPluginOutput } from "./generator/fragment";
 import { getOperationPluginOutput } from "./generator/operation";
@@ -45,8 +46,15 @@ export type TypesPluginConfig = {
   mode: "types";
 };
 
+/** Plugin config for the lean documents-only emitter. */
+export type DocumentsPluginConfig = {
+  /** Generation mode selector. */
+  mode: "documents";
+};
+
 /** Runtime config accepted by the Zod codegen plugin. */
 export type ZodPluginConfig =
+  | DocumentsPluginConfig
   | EnumPluginConfig
   | FragmentPluginConfig
   | OperationPluginConfig
@@ -63,6 +71,9 @@ export type ZodPluginConfig =
  */
 export const plugin: PluginFunction<ZodPluginConfig> = (schema, documents, config) => {
   switch (config.mode) {
+    case "documents":
+      return getDocumentsPluginOutput({ documents });
+
     case "enum":
       return getEnumPluginOutput({ schema, ...config });
 

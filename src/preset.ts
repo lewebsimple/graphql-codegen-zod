@@ -19,8 +19,20 @@ import {
 } from "./generator/documents";
 import * as zodPlugin from "./plugin";
 
+/** Preset configuration accepted by the Zod codegen preset. */
+export type ZodPresetConfig = {
+  /**
+   * Emit TypeScript type aliases for operation / fragment results and
+   * variables in the `documents.ts` artifact. Defaults to `true` for back-
+   * compat. Set to `false` for lean string-only document constants — useful on
+   * very large schemas where the per-operation type aliases dominate file size
+   * and trip parser recursion limits at bundle time.
+   */
+  documentsTypes?: boolean;
+};
+
 /** GraphQL Code Generator preset for multi-file Zod output. */
-export const preset: Types.OutputPreset = {
+export const preset: Types.OutputPreset<ZodPresetConfig> = {
   /**
    * Builds the list of generate sections for the preset output.
    *
@@ -68,20 +80,21 @@ export const preset: Types.OutputPreset = {
     // Schema / operations / typed document node
     // ────────────────────────────────────────────────────────────────────────────
 
+    const documentsTypes = options.presetConfig?.documentsTypes ?? true;
+    const documentsPlugins: Types.ConfiguredPlugin[] = documentsTypes
+      ? [
+          { typescript: {} satisfies TypeScriptPluginConfig },
+          { typescriptOperations: {} satisfies TypeScriptDocumentsPluginConfig },
+          {
+            typedDocumentNode: {
+              documentMode: DocumentMode.string,
+            } satisfies TypeScriptTypedDocumentNodesConfig,
+          },
+        ]
+      : [{ zod: { mode: "documents" } satisfies zodPlugin.ZodPluginConfig }];
+
     sections.push({
-      ...section("documents.ts", [
-        { typescript: {} satisfies TypeScriptPluginConfig },
-        {
-          typescriptOperations: {
-            preResolveTypes: false,
-          } satisfies TypeScriptDocumentsPluginConfig,
-        },
-        {
-          typedDocumentNode: {
-            documentMode: DocumentMode.string,
-          } satisfies TypeScriptTypedDocumentNodesConfig,
-        },
-      ]),
+      ...section("documents.ts", documentsPlugins),
       documents: stripDirectivesFromDocuments(baseConfig.documents),
     });
 
