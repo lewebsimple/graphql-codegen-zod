@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.3.2
+
+[compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.3.1...v0.3.2)
+
+### 🩹 Fixes
+
+- OnlyOperationTypes => preResolveTypes ([d8c15c7](https://github.com/lewebsimple/graphql-codegen-zod/commit/d8c15c7))
+
 ## v0.3.1
 
 [compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.3.0...v0.3.1)
