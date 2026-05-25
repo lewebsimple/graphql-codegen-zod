@@ -19,33 +19,40 @@ export type Scalars = {
   Float: { input: number; output: number };
 };
 
+export type GqlQuery = {
+  __typename?: "Query";
+  getUser: GqlUser;
+};
+
+export type GqlQueryGetUserArgs = {
+  id: Scalars["ID"]["input"];
+};
+
+export type GqlUser = {
+  __typename?: "User";
+  email: Scalars["String"]["output"];
+  id: Scalars["ID"]["output"];
+  name: Maybe<Scalars["String"]["output"]>;
+  role: GqlUserRole;
+};
+
 export enum GqlUserRole {
   Admin = "ADMIN",
   User = "USER",
 }
 
-export type GqlViewerFragment = {
-  __typename?: "User";
-  id: string;
-  email: string;
-  role: GqlUserRole;
-  name: string | null;
-};
+export type GqlViewerFragment = { __typename?: "User" } & Pick<
+  GqlUser,
+  "id" | "email" | "role" | "name"
+>;
 
 export type GqlGetUserQueryVariables = Exact<{
   id: Scalars["ID"]["input"];
   email?: InputMaybe<Scalars["String"]["input"]>;
 }>;
 
-export type GqlGetUserQuery = {
-  __typename?: "Query";
-  getUser: {
-    __typename?: "User";
-    id: string;
-    email: string;
-    role: GqlUserRole;
-    name: string | null;
-  };
+export type GqlGetUserQuery = { __typename?: "Query" } & {
+  getUser: { __typename?: "User" } & Pick<GqlUser, "id" | "email" | "role" | "name">;
 };
 
 export class TypedDocumentString<TResult, TVariables>

@@ -70,12 +70,12 @@ export const preset: Types.OutputPreset = {
 
     sections.push({
       ...section("documents.ts", [
+        { typescript: {} satisfies TypeScriptPluginConfig },
         {
-          typescript: {
-            onlyOperationTypes: true,
-          } satisfies TypeScriptPluginConfig,
+          typescriptOperations: {
+            preResolveTypes: false,
+          } satisfies TypeScriptDocumentsPluginConfig,
         },
-        { typescriptOperations: {} satisfies TypeScriptDocumentsPluginConfig },
         {
           typedDocumentNode: {
             documentMode: DocumentMode.string,
