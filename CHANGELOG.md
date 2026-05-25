@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.3.0
+
+[compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.2.6...v0.3.0)
+
+### 🚀 Enhancements
+
+- ⚠️ Use DocumentMode.string for typedDocumentNode plugin ([03af64e](https://github.com/lewebsimple/graphql-codegen-zod/commit/03af64e))
+
+#### ⚠️ Breaking Changes
+
+- ⚠️ Use DocumentMode.string for typedDocumentNode plugin ([03af64e](https://github.com/lewebsimple/graphql-codegen-zod/commit/03af64e))
+
 ## v0.2.6
 
 [compare changes](https://github.com/lewebsimple/graphql-codegen-zod/compare/v0.2.5...v0.2.6)
